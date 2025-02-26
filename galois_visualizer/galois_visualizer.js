@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import * as d3 from 'd3';
+// Use the global React variable provided by the CDN
+const { useState, useEffect } = React;
+// d3 is already loaded globally from CDN
 
 const GaloisVisualizer = () => {
   const [currentView, setCurrentView] = useState('fieldExtension');
@@ -340,4 +341,5 @@ const GaloisVisualizer = () => {
   );
 };
 
-export default GaloisVisualizer;
+// Export for use in the browser
+window.GaloisVisualizer = GaloisVisualizer;

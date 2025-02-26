@@ -4,17 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Galois Theory Visualizer</title>
-  
+ 
   <!-- Load React -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  
+ 
   <!-- Load D3.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-  
+ 
+  <!-- Load Babel to compile JSX -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.21.4/babel.min.js"></script>
+ 
   <!-- Tailwind CSS for styling -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
+ 
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -23,8 +26,18 @@
 </head>
 <body>
   <div id="root"></div>
+ 
+  <!-- Your React component loaded as JSX -->
+  <script type="text/babel" src="galois_visualizer.js"></script>
   
-  <!-- Your React component will be loaded here -->
-  <script src="galois-visualizer.js"></script>
+  <!-- Script to render the component -->
+  <script type="text/babel">
+    // Render the GaloisVisualizer component to the DOM
+    document.addEventListener('DOMContentLoaded', function() {
+      const container = document.getElementById('root');
+      const root = ReactDOM.createRoot(container);
+      root.render(React.createElement(GaloisVisualizer));
+    });
+  </script>
 </body>
 </html>
