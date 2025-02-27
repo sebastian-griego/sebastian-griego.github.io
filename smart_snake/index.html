@@ -471,10 +471,10 @@
             // Get AI's next move
             const nextDirection = getOptimalMove();
             game.direction = nextDirection;
-            
+
             // Calculate new head position based on current direction
             const head = { ...game.snake[0] }; // Copy the head
-            
+
             switch (game.direction) {
                 case 'up':
                     head.y -= 1;
@@ -489,33 +489,41 @@
                     head.x += 1;
                     break;
             }
-            
+
             // Check for collisions with walls
             if (head.x < 0 || head.x >= config.gridSize || head.y < 0 || head.y >= config.gridSize) {
                 // Game over - hit wall
                 game.isRunning = false;
                 return;
             }
-            
-            // Check for collisions with self
+
+            // Check for collisions with self (excluding tail if it will move)
+            const willEatFood = (head.x === game.food.x && head.y === game.food.y);
+            const tailIndex = game.snake.length - 1;
+
             for (let i = 0; i < game.snake.length; i++) {
+                // Skip the tail check if the snake isn't about to eat food (tail will move)
+                if (i === tailIndex && !willEatFood) {
+                    continue;
+                }
+
                 if (head.x === game.snake[i].x && head.y === game.snake[i].y) {
                     // Game over - collision with self
                     game.isRunning = false;
                     return;
                 }
             }
-            
+
             // Add new head
             game.snake.unshift(head);
-            
+
             // Check if food is eaten
             if (head.x === game.food.x && head.y === game.food.y) {
                 // Increase score
                 game.score++;
                 game.maxScore = Math.max(game.score, game.maxScore);
                 updateStats();
-                
+
                 // Place new food
                 placeFood();
             } else {
@@ -523,7 +531,7 @@
                 game.snake.pop();
             }
         }
-        
+
         // Get optimal move using Hamiltonian cycle with shortcuts
         function getOptimalMove() {
             // First, we'll find the food's position in the Hamiltonian cycle
@@ -587,7 +595,7 @@
         function getShortcutDirection() {
             // Get the current head position
             const head = game.snake[0];
-            
+
             // Calculate manhattan distance to food in each direction
             const distances = [
                 { dir: 'up', dist: Math.abs(head.x - game.food.x) + Math.abs((head.y - 1) - game.food.y), valid: head.y > 0 },
@@ -595,32 +603,40 @@
                 { dir: 'left', dist: Math.abs((head.x - 1) - game.food.x) + Math.abs(head.y - game.food.y), valid: head.x > 0 },
                 { dir: 'right', dist: Math.abs((head.x + 1) - game.food.x) + Math.abs(head.y - game.food.y), valid: head.x < config.gridSize - 1 }
             ];
-            
+
             // Filter out invalid moves (walls or self-collision)
             const validMoves = distances.filter(move => {
                 if (!move.valid) return false;
-                
+
                 // Check if this move would cause self-collision
                 let nextX = head.x;
                 let nextY = head.y;
-                
+
                 switch (move.dir) {
                     case 'up': nextY--; break;
                     case 'down': nextY++; break;
                     case 'left': nextX--; break;
                     case 'right': nextX++; break;
                 }
+
+                // Check if the next position would be food
+                const wouldEatFood = nextX === game.food.x && nextY === game.food.y;
+                const tailIndex = game.snake.length - 1;
                 
                 // Check if this position is occupied by snake (excluding tail which will move)
-                for (let i = 0; i < game.snake.length - 1; i++) {
+                for (let i = 0; i < game.snake.length; i++) {
+                    //skip the tail check if we aren't eating food
+                    if (i === tailIndex && !wouldEatFood){
+                        continue;
+                    }
                     if (game.snake[i].x === nextX && game.snake[i].y === nextY) {
                         return false; // Would collide with self
                     }
                 }
-                
+
                 return true;
             });
-            
+
             // If no valid moves, follow Hamiltonian cycle
             if (validMoves.length === 0) {
                 const headIndex = game.hamCycle.findIndex(pos => 
