@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI vs AI Tron Game | Sebastian Griego</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            width: 80%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 40px 0;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        
+        .tagline {
+            font-style: italic;
+            margin-top: 10px;
+        }
+        
+        section {
+            background-color: white;
+            padding: 30px;
+            margin: 20px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        /* Game specific styles */
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        canvas {
+            border: 2px solid #2c3e50;
+            background-color: #111;
+            max-width: 100%;
+        }
+        
+        #stats {
+            margin-top: 15px;
+            font-size: 18px;
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .stat-box {
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            flex: 1;
+            margin: 0 5px;
+        }
+        
+        .player1 {
+            color: #3498db;
+        }
+        
+        .player2 {
+            color: #e74c3c;
+        }
+        
+        .stat-box span {
+            font-weight: bold;
+        }
+        
+        #controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            padding: 8px 15px;
+            border: none;
+            background-color: #3498db;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        #speed-control {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        #speed-control label {
+            margin-right: 10px;
+        }
+        
+        #speed-slider {
+            width: 200px;
+        }
+        
+        .method-box {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .method-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 8px 15px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        
+        .back-link:hover {
+            background-color: #2980b9;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                width: 95%;
+            }
+            
+            canvas {
+                width: 100%;
+                height: auto;
+            }
+            
+            #stats {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            #controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>AI vs AI Tron Game</h1>
+            <p class="tagline">Competing pathfinding algorithms in a light-cycle duel</p>
+        </div>
+    </header>
+    
+    <div class="container">
+        <section>
+            <h2>About This Project</h2>
+            <p>
+                This Tron-style light-cycle game features two competing AI algorithms battling for survival in a confined arena.
+                The blue and red light cycles leave trails behind them and must avoid colliding with walls, their own trails, and their opponent's trails.
+            </p>
+            <p>
+                Click the "Start" button to watch the AI duel, and use the speed slider to adjust how fast they compete.
+            </p>
+        </section>
+        
+        <section>
+            <h2>Game</h2>
+            <div id="game-container">
+                <canvas id="gameCanvas" width="400" height="400"></canvas>
+                <div id="stats">
+                    <div class="stat-box player1">Blue AI Wins: <span id="player1-wins">0</span></div>
+                    <div class="stat-box player2">Red AI Wins: <span id="player2-wins">0</span></div>
+                    <div class="stat-box">Games: <span id="total-games">0</span></div>
+                </div>
+                <div id="speed-control">
+                    <label for="speed-slider">Speed:</label>
+                    <input type="range" id="speed-slider" min="1" max="100" value="20">
+                </div>
+                <div id="controls">
+                    <button id="start-btn">Start</button>
+                    <button id="pause-btn">Pause</button>
+                    <button id="reset-btn">Reset</button>
+                </div>
+                <div class="method-box">
+                    <div class="method-title">AI Algorithms:</div>
+                    <div id="current-method">Blue: Minimax with Look-ahead | Red: Voronoi-based Territory Control</div>
+                </div>
+            </div>
+            <a href="../index.html" class="back-link">← Back to Projects</a>
+        </section>
+        
+        <section>
+            <h2>How It Works</h2>
+            <p>
+                The two light cycles are controlled by different AI algorithms, each with its own strategy:
+            </p>
+            <ul>
+                <li><strong>Blue AI (Minimax):</strong> Uses a depth-limited minimax algorithm to look ahead several moves and choose the optimal path.</li>
+                <li><strong>Red AI (Voronoi):</strong> Employs Voronoi-based territory control to maximize its available space while trying to cut off its opponent.</li>
+            </ul>
+            <p>
+                The game tracks which algorithm performs better over multiple rounds, demonstrating the relative strengths of different pathfinding approaches.
+            </p>
+        </section>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Sebastian Griego. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Game Configuration
+        const config = {
+            gridSize: 25,      // increased grid for a bit more maneuvering room
+            cellSize: 20,
+            initialSpeed: 20,
+            maxSpeed: 100,
+            trailLength: 15,
+            minimaxDepth: 4    // increased look-ahead depth
+        };
+        
+        // Game State
+        const game = {
+            canvas: null,
+            ctx: null,
+            grid: [],          // 2D grid to track occupied cells
+            player1: {         // Blue AI
+                x: 0,          // Current x position
+                y: 0,          // Current y position
+                direction: 'right',
+                trail: [],     // Array of trail positions
+                color: '#3498db',
+                alive: true,
+                wins: 0
+            },
+            player2: {         // Red AI
+                x: 0,          // Current x position
+                y: 0,          // Current y position
+                direction: 'left',
+                trail: [],     // Array of trail positions
+                color: '#e74c3c',
+                alive: true,
+                wins: 0
+            },
+            isRunning: false,
+            isPaused: false,
+            speed: config.initialSpeed,
+            lastTime: 0,
+            deltaTime: 0,
+            totalGames: 0,
+            showWinner: false,
+            winnerMessage: '',
+            winnerColor: '',
+            messageTimer: 0
+        };
+
+        // Initialize the game grid
+        function initGrid() {
+            game.grid = [];
+            for (let y = 0; y < config.gridSize; y++) {
+                game.grid[y] = [];
+                for (let x = 0; x < config.gridSize; x++) {
+                    game.grid[y][x] = 0; // 0 = empty, >0 = player trail with timestamp
+                }
+            }
+            
+            // Reset winner message
+            game.showWinner = false;
+            game.winnerMessage = '';
+            game.winnerColor = '';
+            game.messageTimer = 0;
+        }
+
+        // Initialize player positions
+        function initPlayers() {
+            // Player 1 (Blue) starts on the left
+            game.player1.x = Math.floor(config.gridSize * 0.25);
+            game.player1.y = Math.floor(config.gridSize / 2);
+            game.player1.direction = 'right';
+            game.player1.trail = [{x: game.player1.x, y: game.player1.y}];
+            game.player1.alive = true;
+            
+            // Player 2 (Red) starts on the right
+            game.player2.x = Math.floor(config.gridSize * 0.75);
+            game.player2.y = Math.floor(config.gridSize / 2);
+            game.player2.direction = 'left';
+            game.player2.trail = [{x: game.player2.x, y: game.player2.y}];
+            game.player2.alive = true;
+            
+            // Mark starting positions on the grid
+            game.grid[game.player1.y][game.player1.x] = 1;
+            game.grid[game.player2.y][game.player2.x] = 2;
+        }
+
+        // Render game state to canvas
+        function render() {
+            // Clear canvas
+            game.ctx.clearRect(0, 0, game.canvas.width, game.canvas.height);
+            
+            // Draw grid
+            drawGrid();
+            
+            // Draw player trails
+            drawTrails();
+            
+            // Draw player heads
+            drawPlayerHeads();
+            
+            // Draw winner message if applicable
+            if (game.showWinner) {
+                drawWinnerMessage();
+            }
+        }
+        
+        // Draw the winner message
+        function drawWinnerMessage() {
+            game.ctx.save();
+            
+            // Semi-transparent background
+            game.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            game.ctx.fillRect(0, 0, game.canvas.width, game.canvas.height);
+            
+            // Text properties
+            game.ctx.font = 'bold 36px Arial';
+            game.ctx.fillStyle = game.winnerColor;
+            game.ctx.textAlign = 'center';
+            game.ctx.textBaseline = 'middle';
+            
+            // Draw text with shadow for better visibility
+            game.ctx.shadowColor = 'black';
+            game.ctx.shadowBlur = 5;
+            game.ctx.fillText(
+                game.winnerMessage, 
+                game.canvas.width / 2, 
+                game.canvas.height / 2
+            );
+            
+            // Add smaller "Next round starting..." text
+            game.ctx.font = '18px Arial';
+            game.ctx.fillStyle = 'white';
+            game.ctx.shadowBlur = 2;
+            game.ctx.fillText(
+                'Next round starting...',
+                game.canvas.width / 2,
+                (game.canvas.height / 2) + 40
+            );
+            
+            game.ctx.restore();
+        }
+
+        // Draw the grid
+        function drawGrid() {
+            game.ctx.strokeStyle = '#333333';
+            game.ctx.lineWidth = 0.5;
+            
+            // Draw vertical lines
+            for (let x = 0; x <= config.gridSize; x++) {
+                game.ctx.beginPath();
+                game.ctx.moveTo(x * config.cellSize, 0);
+                game.ctx.lineTo(x * config.cellSize, game.canvas.height);
+                game.ctx.stroke();
+            }
+            
+            // Draw horizontal lines
+            for (let y = 0; y <= config.gridSize; y++) {
+                game.ctx.beginPath();
+                game.ctx.moveTo(0, y * config.cellSize);
+                game.ctx.lineTo(game.canvas.width, y * config.cellSize);
+                game.ctx.stroke();
+            }
+        }
+
+        // Draw player trails
+        function drawTrails() {
+            // Draw player 1 (Blue) trail
+            game.ctx.fillStyle = game.player1.color;
+            for (let i = 0; i < game.player1.trail.length; i++) {
+                const segment = game.player1.trail[i];
+                game.ctx.fillRect(
+                    segment.x * config.cellSize + 1,
+                    segment.y * config.cellSize + 1,
+                    config.cellSize - 2,
+                    config.cellSize - 2
+                );
+            }
+            
+            // Draw player 2 (Red) trail
+            game.ctx.fillStyle = game.player2.color;
+            for (let i = 0; i < game.player2.trail.length; i++) {
+                const segment = game.player2.trail[i];
+                game.ctx.fillRect(
+                    segment.x * config.cellSize + 1,
+                    segment.y * config.cellSize + 1,
+                    config.cellSize - 2,
+                    config.cellSize - 2
+                );
+            }
+        }
+
+        // Draw player heads
+        function drawPlayerHeads() {
+            // Draw player 1 head if alive
+            if (game.player1.alive) {
+                game.ctx.fillStyle = '#1e6bbd'; // Darker blue for head
+                game.ctx.fillRect(
+                    game.player1.x * config.cellSize,
+                    game.player1.y * config.cellSize,
+                    config.cellSize,
+                    config.cellSize
+                );
+                
+                // Add a glow effect for the head
+                game.ctx.shadowColor = game.player1.color;
+                game.ctx.shadowBlur = 10;
+                game.ctx.fillRect(
+                    game.player1.x * config.cellSize + 2,
+                    game.player1.y * config.cellSize + 2,
+                    config.cellSize - 4,
+                    config.cellSize - 4
+                );
+                game.ctx.shadowBlur = 0;
+            }
+            
+            // Draw player 2 head if alive
+            if (game.player2.alive) {
+                game.ctx.fillStyle = '#c0392b'; // Darker red for head
+                game.ctx.fillRect(
+                    game.player2.x * config.cellSize,
+                    game.player2.y * config.cellSize,
+                    config.cellSize,
+                    config.cellSize
+                );
+                
+                // Add a glow effect for the head
+                game.ctx.shadowColor = game.player2.color;
+                game.ctx.shadowBlur = 10;
+                game.ctx.fillRect(
+                    game.player2.x * config.cellSize + 2,
+                    game.player2.y * config.cellSize + 2,
+                    config.cellSize - 4,
+                    config.cellSize - 4
+                );
+                game.ctx.shadowBlur = 0;
+            }
+        }
+
+        // Update score and stats display
+        function updateStats() {
+            document.getElementById('player1-wins').textContent = game.player1.wins;
+            document.getElementById('player2-wins').textContent = game.player2.wins;
+            document.getElementById('total-games').textContent = game.totalGames;
+        }
+
+        // Initialize the game
+        function init() {
+            // Get the canvas and its context
+            game.canvas = document.getElementById('gameCanvas');
+            game.ctx = game.canvas.getContext('2d');
+            
+            // Initialize game grid and players
+            initGrid();
+            initPlayers();
+            
+            // Set up event handlers
+            document.getElementById('start-btn').addEventListener('click', startGame);
+            document.getElementById('pause-btn').addEventListener('click', pauseGame);
+            document.getElementById('reset-btn').addEventListener('click', resetGame);
+            document.getElementById('speed-slider').addEventListener('input', updateSpeed);
+            
+            // Make sure the canvas is responsive
+            window.addEventListener('resize', adjustCanvasSize);
+            adjustCanvasSize();
+            
+            // Initial render
+            render();
+        }
+        
+        // Adjust canvas size for responsiveness
+        function adjustCanvasSize() {
+            const container = document.getElementById('game-container');
+            const containerWidth = container.clientWidth;
+            
+            if (containerWidth < game.canvas.width) {
+                const scale = containerWidth / game.canvas.width;
+                game.canvas.style.width = `${containerWidth}px`;
+                game.canvas.style.height = `${game.canvas.height * scale}px`;
+            } else {
+                game.canvas.style.width = '';
+                game.canvas.style.height = '';
+            }
+        }
+        
+        // Start game loop
+        function startGame() {
+            if (!game.isRunning) {
+                game.isRunning = true;
+                game.isPaused = false;
+                game.lastTime = performance.now();
+                requestAnimationFrame(gameLoop);
+            } else if (game.isPaused) {
+                game.isPaused = false;
+                game.lastTime = performance.now();
+                requestAnimationFrame(gameLoop);
+            }
+        }
+        
+        // Pause the game
+        function pauseGame() {
+            game.isPaused = !game.isPaused;
+            if (!game.isPaused && game.isRunning) {
+                game.lastTime = performance.now();
+                requestAnimationFrame(gameLoop);
+            }
+        }
+        
+        // Reset the game
+        function resetGame() {
+            game.isRunning = false;
+            game.isPaused = false;
+            
+            // Reset the grid and players
+            initGrid();
+            initPlayers();
+            
+            // Reset wins if requested
+            // game.player1.wins = 0;
+            // game.player2.wins = 0;
+            // game.totalGames = 0;
+            
+            // Update stats display
+            updateStats();
+            
+            // Render the new state
+            render();
+        }
+        
+        // Update game speed from slider
+        function updateSpeed() {
+            const speedSlider = document.getElementById('speed-slider');
+            game.speed = parseInt(speedSlider.value);
+        }
+        
+        // Main game loop
+        function gameLoop(timestamp) {
+            if (!game.isRunning || game.isPaused) {
+                return;
+            }
+            
+            // Calculate delta time for consistent speed regardless of frame rate
+            game.deltaTime = timestamp - game.lastTime;
+            
+            // Determine if it's time to update game state based on speed
+            if (game.deltaTime >= 1000 / game.speed) {
+                game.lastTime = timestamp;
+                
+                // Update game state (AI moves)
+                if (!game.showWinner) {
+                    update();
+                    
+                    // Check if the game is over
+                    if (!game.player1.alive || !game.player2.alive) {
+                        gameOver();
+                        return;
+                    }
+                }
+                
+                // Render the new state
+                render();
+            }
+            
+            // Continue the loop
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Update game state (move players, check collisions)
+        function update() {
+            // Get AI moves
+            if (game.player1.alive) {
+                const nextMove1 = getMinimaxMove(game.player1, game.player2);
+                updatePlayerDirection(game.player1, nextMove1);
+            }
+            
+            if (game.player2.alive) {
+                const nextMove2 = getVoronoiMove(game.player2, game.player1);
+                updatePlayerDirection(game.player2, nextMove2);
+            }
+            
+            // Move player 1 if alive
+            if (game.player1.alive) {
+                movePlayer(game.player1);
+                // Check for collisions for player 1
+                if (checkCollision(game.player1)) {
+                    game.player1.alive = false;
+                }
+            }
+            
+            // Move player 2 if alive
+            if (game.player2.alive) {
+                movePlayer(game.player2);
+                // Check for collisions for player 2
+                if (checkCollision(game.player2)) {
+                    game.player2.alive = false;
+                }
+            }
+        }
+        
+        // Update player direction based on AI move
+        function updatePlayerDirection(player, direction) {
+            // Validate move (prevent 180-degree turns)
+            if ((player.direction === 'up' && direction === 'down') ||
+                (player.direction === 'down' && direction === 'up') ||
+                (player.direction === 'left' && direction === 'right') ||
+                (player.direction === 'right' && direction === 'left')) {
+                    // Invalid direction, keep current direction
+                    return;
+            }
+            
+            player.direction = direction;
+        }
+        
+        // Move a player based on their direction
+        function movePlayer(player) {
+            // Compute the next position without modifying the current one
+            let nextX = player.x;
+            let nextY = player.y;
+            
+            // Calculate new position based on the current direction
+            switch (player.direction) {
+                case 'up':
+                    nextY -= 1;
+                    break;
+                case 'down':
+                    nextY += 1;
+                    break;
+                case 'left':
+                    nextX -= 1;
+                    break;
+                case 'right':
+                    nextX += 1;
+                    break;
+            }
+            
+            // Check for wall collisions or collisions with any trail (even opponent's)
+            if (
+                nextX < 0 || nextX >= config.gridSize ||
+                nextY < 0 || nextY >= config.gridSize ||
+                game.grid[nextY][nextX] !== 0
+            ) {
+                // Mark player as not alive if collision detected
+                player.alive = false;
+                return;
+            }
+
+            // Update player's current position
+            player.x = nextX;
+            player.y = nextY;
+            
+            // Add the new position to the trail
+            player.trail.push({ x: player.x, y: player.y });
+            
+            // Limit the trail length and clear the grid for the removed segment
+            if (player.trail.length > config.trailLength) {
+                const removed = player.trail.shift();
+                if (
+                    removed.y >= 0 && removed.y < config.gridSize &&
+                    removed.x >= 0 && removed.x < config.gridSize
+                ) {
+                    game.grid[removed.y][removed.x] = 0;
+                }
+            }
+            
+            // Mark the new position on the grid with the player's marker
+            if (player.y >= 0 && player.y < config.gridSize &&
+                player.x >= 0 && player.x < config.gridSize) {
+                game.grid[player.y][player.x] = player === game.player1 ? 1 : 2;
+            }
+        }
+        
+        // Check for collisions (walls, trails)
+        function checkCollision(player) {
+            // Check for wall collisions
+            if (player.x < 0 || player.x >= config.gridSize || 
+                player.y < 0 || player.y >= config.gridSize) {
+                return true;
+            }
+            
+            // Check for trail collisions (both players' trails)
+            if (game.grid[player.y][player.x] !== 0 && 
+                !(player === game.player1 && game.grid[player.y][player.x] === 1 && 
+                  player.x === player.trail[player.trail.length-1].x && 
+                  player.y === player.trail[player.trail.length-1].y) && 
+                !(player === game.player2 && game.grid[player.y][player.x] === 2 && 
+                  player.x === player.trail[player.trail.length-1].x && 
+                  player.y === player.trail[player.trail.length-1].y)) {
+                return true;
+            }
+            
+            return false;
+        }
+        
+        // Game over handler
+        function gameOver() {
+            game.isRunning = false;
+            game.totalGames++;
+            
+            // Show winner message
+            game.showWinner = true;
+            
+            // Determine winner
+            if (!game.player1.alive && !game.player2.alive) {
+                // Draw - both players died on the same turn
+                game.winnerMessage = "DRAW!";
+                game.winnerColor = "#ffffff";
+                console.log("Game ended in a draw!");
+            } else if (!game.player1.alive) {
+                // Player 2 (Red) wins
+                game.player2.wins++;
+                game.winnerMessage = "RED WINS!";
+                game.winnerColor = "#e74c3c";
+                console.log("Red AI wins!");
+            } else {
+                // Player 1 (Blue) wins
+                game.player1.wins++;
+                game.winnerMessage = "BLUE WINS!";
+                game.winnerColor = "#3498db";
+                console.log("Blue AI wins!");
+            }
+            
+            // Update stats
+            updateStats();
+            
+            // Render to show the winner message
+            render();
+            
+            // Auto-restart after a longer delay to show the winner message
+            setTimeout(() => {
+                resetGame();
+                startGame();
+            }, 2000);
+        }
+        
+        // AI ALGORITHMS
+        
+        // Minimax AI for Player 1 (Blue)
+        function getMinimaxMove(player, opponent) {
+            const possibleMoves = ['up', 'right', 'down', 'left'];
+            let bestScore = -Infinity;
+            let bestMoves = []; // Array to collect equally good moves
+            
+            // Filter out invalid moves (180-degree turns)
+            const validMoves = possibleMoves.filter(move => {
+                if ((player.direction === 'up' && move === 'down') ||
+                    (player.direction === 'down' && move === 'up') ||
+                    (player.direction === 'left' && move === 'right') ||
+                    (player.direction === 'right' && move === 'left')) {
+                    return false;
+                }
+                return true;
+            });
+            
+            // Check immediate collisions
+            const safeDirections = [];
+            for (const move of validMoves) {
+                let nx = player.x;
+                let ny = player.y;
+                
+                switch (move) {
+                    case 'up': ny -= 1; break;
+                    case 'down': ny += 1; break;
+                    case 'left': nx -= 1; break;
+                    case 'right': nx += 1; break;
+                }
+                
+                // Check if this move causes immediate collision
+                if (nx < 0 || nx >= config.gridSize || ny < 0 || ny >= config.gridSize) {
+                    continue; // Wall collision
+                }
+                
+                // Special check for corners (avoid them)
+                if ((nx === 0 && ny === 0) || 
+                    (nx === 0 && ny === config.gridSize-1) || 
+                    (nx === config.gridSize-1 && ny === 0) || 
+                    (nx === config.gridSize-1 && ny === config.gridSize-1)) {
+                    continue;
+                }
+                
+                // Additional check for near-corners (avoid getting trapped)
+                if ((nx <= 1 && ny <= 1) || 
+                    (nx <= 1 && ny >= config.gridSize-2) || 
+                    (nx >= config.gridSize-2 && ny <= 1) || 
+                    (nx >= config.gridSize-2 && ny >= config.gridSize-2)) {
+                    let escape = false;
+                    const escapeDirs = [{x: 0, y: -1}, {x: 0, y: 1}, {x: -1, y: 0}, {x: 1, y: 0}];
+                    
+                    for (const dir of escapeDirs) {
+                        const escX = nx + dir.x;
+                        const escY = ny + dir.y;
+                        
+                        if (escX < 0 || escX >= config.gridSize || escY < 0 || escY >= config.gridSize) {
+                            continue;
+                        }
+                        
+                        let blocked = false;
+                        for (const segment of player.trail) {
+                            if (escX === segment.x && escY === segment.y) {
+                                blocked = true;
+                                break;
+                            }
+                        }
+                        
+                        for (const segment of opponent.trail) {
+                            if (escX === segment.x && escY === segment.y) {
+                                blocked = true;
+                                break;
+                            }
+                        }
+                        
+                        if (!blocked) {
+                            escape = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!escape) {
+                        continue;
+                    }
+                }
+                
+                // Check trail collisions
+                let collision = false;
+                for (const segment of player.trail) {
+                    if (nx === segment.x && ny === segment.y) {
+                        collision = true;
+                        break;
+                    }
+                }
+                
+                for (const segment of opponent.trail) {
+                    if (nx === segment.x && ny === segment.y) {
+                        collision = true;
+                        break;
+                    }
+                }
+                
+                if (!collision) {
+                    safeDirections.push(move);
+                }
+            }
+            
+            if (safeDirections.length === 0) {
+                return validMoves[0] || player.direction;
+            }
+            if (safeDirections.length === 1) {
+                return safeDirections[0];
+            }
+            
+            // For each safe direction, evaluate using minimax (with limited depth)
+            for (const move of safeDirections) {
+                const gridCopy = JSON.parse(JSON.stringify(game.grid));
+                const playerCopy = {
+                    x: player.x,
+                    y: player.y,
+                    direction: move,
+                    trail: JSON.parse(JSON.stringify(player.trail))
+                };
+                const opponentCopy = {
+                    x: opponent.x,
+                    y: opponent.y,
+                    direction: opponent.direction,
+                    trail: JSON.parse(JSON.stringify(opponent.trail))
+                };
+                
+                // Simulate the move
+                switch (move) {
+                    case 'up': playerCopy.y -= 1; break;
+                    case 'down': playerCopy.y += 1; break;
+                    case 'left': playerCopy.x -= 1; break;
+                    case 'right': playerCopy.x += 1; break;
+                }
+                
+                playerCopy.trail.push({x: playerCopy.x, y: playerCopy.y});
+                
+                // Reduced randomness for more consistent move choosing
+                const randomFactor = Math.random() * 2;
+                const score = minimaxEvaluate(playerCopy, opponentCopy, gridCopy, config.minimaxDepth, false) + randomFactor;
+                
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMoves = [move];
+                } else if (score === bestScore) {
+                    bestMoves.push(move);
+                }
+            }
+            
+            return bestMoves[Math.floor(Math.random() * bestMoves.length)];
+        }
+        
+        // Minimax evaluation function (simplified for performance)
+        function minimaxEvaluate(player, opponent, grid, depth, isMaximizing) {
+            if (depth === 0) {
+                return evaluatePosition(player, opponent);
+            }
+            
+            if (isMaximizing) {
+                const possibleMoves = ['up', 'right', 'down', 'left'];
+                let maxScore = -Infinity;
+                
+                for (const move of possibleMoves) {
+                    if ((player.direction === 'up' && move === 'down') ||
+                        (player.direction === 'down' && move === 'up') ||
+                        (player.direction === 'left' && move === 'right') ||
+                        (player.direction === 'right' && move === 'left')) {
+                        continue;
+                    }
+                    
+                    const playerCopy = {
+                        x: player.x,
+                        y: player.y,
+                        direction: move,
+                        trail: JSON.parse(JSON.stringify(player.trail))
+                    };
+                    
+                    switch (move) {
+                        case 'up': playerCopy.y -= 1; break;
+                        case 'down': playerCopy.y += 1; break;
+                        case 'left': playerCopy.x -= 1; break;
+                        case 'right': playerCopy.x += 1; break;
+                    }
+                    
+                    if (playerCopy.x < 0 || playerCopy.x >= config.gridSize || 
+                        playerCopy.y < 0 || playerCopy.y >= config.gridSize) {
+                        continue;
+                    }
+                    
+                    let collision = false;
+                    for (const segment of player.trail) {
+                        if (playerCopy.x === segment.x && playerCopy.y === segment.y) {
+                            collision = true;
+                            break;
+                        }
+                    }
+                    
+                    for (const segment of opponent.trail) {
+                        if (playerCopy.x === segment.x && playerCopy.y === segment.y) {
+                            collision = true;
+                            break;
+                        }
+                    }
+                    
+                    if (collision) {
+                        continue;
+                    }
+                    
+                    playerCopy.trail.push({x: playerCopy.x, y: playerCopy.y});
+                    
+                    const score = minimaxEvaluate(playerCopy, opponent, grid, depth - 1, false);
+                    maxScore = Math.max(maxScore, score);
+                }
+                
+                return maxScore === -Infinity ? evaluatePosition(player, opponent) : maxScore;
+            } else {
+                const possibleMoves = ['up', 'right', 'down', 'left'];
+                let minScore = Infinity;
+                
+                for (const move of possibleMoves) {
+                    if ((opponent.direction === 'up' && move === 'down') ||
+                        (opponent.direction === 'down' && move === 'up') ||
+                        (opponent.direction === 'left' && move === 'right') ||
+                        (opponent.direction === 'right' && move === 'left')) {
+                        continue;
+                    }
+                    
+                    const opponentCopy = {
+                        x: opponent.x,
+                        y: opponent.y,
+                        direction: move,
+                        trail: JSON.parse(JSON.stringify(opponent.trail))
+                    };
+                    
+                    switch (move) {
+                        case 'up': opponentCopy.y -= 1; break;
+                        case 'down': opponentCopy.y += 1; break;
+                        case 'left': opponentCopy.x -= 1; break;
+                        case 'right': opponentCopy.x += 1; break;
+                    }
+                    
+                    if (opponentCopy.x < 0 || opponentCopy.x >= config.gridSize || 
+                        opponentCopy.y < 0 || opponentCopy.y >= config.gridSize) {
+                        continue;
+                    }
+                    
+                    let collision = false;
+                    for (const segment of player.trail) {
+                        if (opponentCopy.x === segment.x && opponentCopy.y === segment.y) {
+                            collision = true;
+                            break;
+                        }
+                    }
+                    
+                    for (const segment of opponent.trail) {
+                        if (opponentCopy.x === segment.x && opponentCopy.y === segment.y) {
+                            collision = true;
+                            break;
+                        }
+                    }
+                    
+                    if (collision) {
+                        continue;
+                    }
+                    
+                    opponentCopy.trail.push({x: opponentCopy.x, y: opponentCopy.y});
+                    
+                    const score = minimaxEvaluate(player, opponentCopy, grid, depth - 1, true);
+                    minScore = Math.min(minScore, score);
+                }
+                
+                return minScore === Infinity ? evaluatePosition(player, opponent) : minScore;
+            }
+        }
+        
+        // Evaluate a board position for minimax
+        function evaluatePosition(player, opponent) {
+            const playerSpace = floodFill(player.x, player.y, player, opponent);
+            const opponentSpace = floodFill(opponent.x, opponent.y, opponent, player);
+            
+            const distance = Math.abs(player.x - opponent.x) + Math.abs(player.y - opponent.y);
+            
+            const centerX = config.gridSize / 2;
+            const centerY = config.gridSize / 2;
+            const edgeProximity = Math.max(
+                Math.abs(player.x - centerX),
+                Math.abs(player.y - centerY)
+            );
+            
+            const wallProximity = Math.min(
+                player.x,
+                player.y,
+                config.gridSize - 1 - player.x,
+                config.gridSize - 1 - player.y
+            );
+            
+            let cornerPenalty = 0;
+            if ((player.x <= 2 && player.y <= 2) || 
+                (player.x <= 2 && player.y >= config.gridSize - 3) || 
+                (player.x >= config.gridSize - 3 && player.y <= 2) || 
+                (player.x >= config.gridSize - 3 && player.y >= config.gridSize - 3)) {
+                cornerPenalty = 50;
+            }
+            
+            const spaceScore = playerSpace - opponentSpace;
+            const aggressionFactor = 1.5;
+            
+            return (spaceScore * 10) - (distance * aggressionFactor) + (wallProximity * 3) - cornerPenalty;
+        }
+        
+        // Flood fill algorithm to measure available space
+        function floodFill(x, y, player, opponent) {
+            if (x < 0 || x >= config.gridSize || y < 0 || y >= config.gridSize) {
+                return 0;
+            }
+            
+            const visited = Array(config.gridSize).fill().map(() => Array(config.gridSize).fill(false));
+            
+            for (const segment of player.trail) {
+                if (segment.x >= 0 && segment.x < config.gridSize && segment.y >= 0 && segment.y < config.gridSize) {
+                    visited[segment.y][segment.x] = true;
+                }
+            }
+            
+            for (const segment of opponent.trail) {
+                if (segment.x >= 0 && segment.x < config.gridSize && segment.y >= 0 && segment.y < config.gridSize) {
+                    visited[segment.y][segment.x] = true;
+                }
+            }
+            
+            let count = 0;
+            const queue = [{x, y}];
+            
+            while (queue.length > 0 && count < 100) {
+                const current = queue.shift();
+                
+                if (current.x < 0 || current.x >= config.gridSize || 
+                    current.y < 0 || current.y >= config.gridSize || 
+                    visited[current.y][current.x]) {
+                    continue;
+                }
+                
+                visited[current.y][current.x] = true;
+                count++;
+                
+                queue.push({x: current.x + 1, y: current.y});
+                queue.push({x: current.x - 1, y: current.y});
+                queue.push({x: current.x, y: current.y + 1});
+                queue.push({x: current.x, y: current.y - 1});
+            }
+            
+            return count;
+        }
+        
+        // Voronoi-based AI for Player 2 (Red)
+        function getVoronoiMove(player, opponent) {
+            const possibleMoves = ['up', 'right', 'down', 'left'];
+            let bestScore = -Infinity;
+            let bestMoves = []; // Array to collect equally good moves
+            
+            const validMoves = possibleMoves.filter(move => {
+                if ((player.direction === 'up' && move === 'down') ||
+                    (player.direction === 'down' && move === 'up') ||
+                    (player.direction === 'left' && move === 'right') ||
+                    (player.direction === 'right' && move === 'left')) {
+                    return false;
+                }
+                return true;
+            });
+            
+            for (const move of validMoves) {
+                let nx = player.x;
+                let ny = player.y;
+                
+                switch (move) {
+                    case 'up': ny -= 1; break;
+                    case 'down': ny += 1; break;
+                    case 'left': nx -= 1; break;
+                    case 'right': nx += 1; break;
+                }
+                
+                if (nx < 0 || nx >= config.gridSize || ny < 0 || ny >= config.gridSize) {
+                    continue;
+                }
+                
+                let collision = false;
+                for (const segment of player.trail) {
+                    if (nx === segment.x && ny === segment.y) {
+                        collision = true;
+                        break;
+                    }
+                }
+                
+                for (const segment of opponent.trail) {
+                    if (nx === segment.x && ny === segment.y) {
+                        collision = true;
+                        break;
+                    }
+                }
+                
+                if (collision) {
+                    continue;
+                }
+                
+                const numExits = countExits(nx, ny, player, opponent);
+                if (numExits < 2) {
+                    if (validMoves.length > 1) {
+                        continue;
+                    }
+                }
+                
+                const randomFactor = Math.random() * 8;
+                const score = evaluateVoronoi(nx, ny, player, opponent) + randomFactor;
+                
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMoves = [move];
+                } else if (Math.abs(score - bestScore) < 5) {
+                    bestMoves.push(move);
+                }
+            }
+            
+            if (bestMoves.length === 0) {
+                return player.direction;
+            }
+            
+            return bestMoves[Math.floor(Math.random() * bestMoves.length)];
+        }
+        
+        // Count number of exits from a position
+        function countExits(x, y, player, opponent) {
+            const directions = [
+                {dx: 0, dy: -1},
+                {dx: 1, dy: 0},
+                {dx: 0, dy: 1},
+                {dx: -1, dy: 0}
+            ];
+            
+            let exits = 0;
+            
+            for (const dir of directions) {
+                const nx = x + dir.dx;
+                const ny = y + dir.dy;
+                
+                if (nx < 0 || nx >= config.gridSize || ny < 0 || ny >= config.gridSize) {
+                    continue;
+                }
+                
+                let blocked = false;
+                for (const segment of player.trail) {
+                    if (nx === segment.x && ny === segment.y) {
+                        blocked = true;
+                        break;
+                    }
+                }
+                
+                if (!blocked) {
+                    for (const segment of opponent.trail) {
+                        if (nx === segment.x && ny === segment.y) {
+                            blocked = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (!blocked) {
+                    exits++;
+                }
+            }
+            
+            return exits;
+        }
+        
+        // Voronoi territory evaluation
+        function evaluateVoronoi(nx, ny, player, opponent) {
+            const voronoi = Array(config.gridSize).fill().map(() => Array(config.gridSize).fill(0));
+            
+            for (const segment of player.trail) {
+                if (segment.x >= 0 && segment.x < config.gridSize && segment.y >= 0 && segment.y < config.gridSize) {
+                    voronoi[segment.y][segment.x] = -1;
+                }
+            }
+            
+            for (const segment of opponent.trail) {
+                if (segment.x >= 0 && segment.x < config.gridSize && segment.y >= 0 && segment.y < config.gridSize) {
+                    voronoi[segment.y][segment.x] = -1;
+                }
+            }
+            
+            const queue = [];
+            
+            queue.push({x: nx, y: ny, player: 1, dist: 0});
+            queue.push({x: opponent.x, y: opponent.y, player: 2, dist: 0});
+            
+            while (queue.length > 0) {
+                const current = queue.shift();
+                
+                if (current.x < 0 || current.x >= config.gridSize || 
+                    current.y < 0 || current.y >= config.gridSize) {
+                    continue;
+                }
+                
+                if (voronoi[current.y][current.x] !== 0) {
+                    continue;
+                }
+                
+                voronoi[current.y][current.x] = current.player;
+                
+                queue.push({x: current.x + 1, y: current.y, player: current.player, dist: current.dist + 1});
+                queue.push({x: current.x - 1, y: current.y, player: current.player, dist: current.dist + 1});
+                queue.push({x: current.x, y: current.y + 1, player: current.player, dist: current.dist + 1});
+                queue.push({x: current.x, y: current.y - 1, player: current.player, dist: current.dist + 1});
+            }
+            
+            let playerTerritory = 0;
+            let opponentTerritory = 0;
+            
+            for (let y = 0; y < config.gridSize; y++) {
+                for (let x = 0; x < config.gridSize; x++) {
+                    if (voronoi[y][x] === 1) {
+                        playerTerritory++;
+                    } else if (voronoi[y][x] === 2) {
+                        opponentTerritory++;
+                    }
+                }
+            }
+            
+            const territoryScore = playerTerritory - opponentTerritory;
+            
+            let wallFollowingBonus = 0;
+            if ((nx === 0 || nx === config.gridSize - 1 || ny === 0 || ny === config.gridSize - 1) &&
+                !(nx <= 1 && ny <= 1) &&
+                !(nx <= 1 && ny >= config.gridSize-2) &&
+                !(nx >= config.gridSize-2 && ny <= 1) &&
+                !(nx >= config.gridSize-2 && ny >= config.gridSize-2)) {
+                wallFollowingBonus = 5;
+            }
+            
+            let cornerPenalty = 0;
+            if ((nx <= 1 && ny <= 1) || 
+                (nx <= 1 && ny >= config.gridSize-2) || 
+                (nx >= config.gridSize-2 && ny <= 1) || 
+                (nx >= config.gridSize-2 && ny >= config.gridSize-2)) {
+                cornerPenalty = 30;
+            }
+            
+            const cutOffBonus = checkCutOffOpponent(nx, ny, player, opponent) ? 50 : 0;
+            
+            const openSpaceBonus = countExits(nx, ny, player, opponent) * 5;
+            
+            return territoryScore + wallFollowingBonus + cutOffBonus + openSpaceBonus - cornerPenalty;
+        }
+        
+        // Check if a move cuts off the opponent
+        function checkCutOffOpponent(nx, ny, player, opponent) {
+            const simulatedGrid = Array(config.gridSize).fill().map(() => Array(config.gridSize).fill(0));
+            
+            for (const segment of player.trail) {
+                if (segment.x >= 0 && segment.x < config.gridSize && segment.y >= 0 && segment.y < config.gridSize) {
+                    simulatedGrid[segment.y][segment.x] = 1;
+                }
+            }
+            
+            for (const segment of opponent.trail) {
+                if (segment.x >= 0 && segment.x < config.gridSize && segment.y >= 0 && segment.y < config.gridSize) {
+                    simulatedGrid[segment.y][segment.x] = 1;
+                }
+            }
+            
+            simulatedGrid[ny][nx] = 1;
+            
+            const space = simulatedFloodFill(opponent.x, opponent.y, simulatedGrid);
+            
+            return space < 10;
+        }
+        
+        // Simulated flood fill for cut-off checking
+        function simulatedFloodFill(x, y, grid) {
+            if (x < 0 || x >= config.gridSize || y < 0 || y >= config.gridSize || grid[y][x] === 1) {
+                return 0;
+            }
+            
+            const visited = Array(config.gridSize).fill().map(() => Array(config.gridSize).fill(false));
+            
+            let count = 0;
+            const queue = [{x, y}];
+            
+            while (queue.length > 0 && count < 100) {
+                const current = queue.shift();
+                
+                if (current.x < 0 || current.x >= config.gridSize || 
+                    current.y < 0 || current.y >= config.gridSize || 
+                    grid[current.y][current.x] === 1 || 
+                    visited[current.y][current.x]) {
+                    continue;
+                }
+                
+                visited[current.y][current.x] = true;
+                count++;
+                
+                queue.push({x: current.x + 1, y: current.y});
+                queue.push({x: current.x - 1, y: current.y});
+                queue.push({x: current.x, y: current.y + 1});
+                queue.push({x: current.x, y: current.y - 1});
+            }
+            
+            return count;
+        }
+        
+        // Global event listener to initialize the game when the window loads
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
