@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/math_genealogy/static/css/main.07019269.css",
+    "main.js": "/math_genealogy/static/js/main.a7160876.js",
+    "static/js/453.bb23a186.chunk.js": "/math_genealogy/static/js/453.bb23a186.chunk.js",
+    "index.html": "/math_genealogy/index.html",
+    "main.07019269.css.map": "/math_genealogy/static/css/main.07019269.css.map",
+    "main.a7160876.js.map": "/math_genealogy/static/js/main.a7160876.js.map",
+    "453.bb23a186.chunk.js.map": "/math_genealogy/static/js/453.bb23a186.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.07019269.css",
+    "static/js/main.a7160876.js"
+  ]
+}
