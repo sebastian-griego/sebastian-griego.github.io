@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algebraic Geometry Proof Visualizer</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        #root {
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const ProofVisualizer = () => {
+          // Primary states for the visualization
+          const [currentProof, setCurrentProof] = React.useState('hilbert-nullstellensatz');
+          const [detailView, setDetailView] = React.useState(false);
+          const [selectedNode, setSelectedNode] = React.useState(null);
+          const [currentStep, setCurrentStep] = React.useState(0);
+          const [nodePositions, setNodePositions] = React.useState({});
+          const [dimensions, setDimensions] = React.useState({ width: 800, height: 600 });
+          
+          // Reference to the SVG element
+          const svgRef = React.useRef();
+
+          // Comprehensive proof catalog with detailed steps
+          const proofs = {
+            'module-homomorphism': {
+              name: "Kernel and Image of Module Homomorphism",
+              description: "Proof that the kernel and image of an R-module homomorphism are R-modules",
+              overview: "This proof demonstrates fundamental properties of module homomorphisms, showing how algebraic structure is preserved in the kernel and image.",
+              steps: [
+                {
+                  id: "step0",
+                  label: "Theorem Statement",
+                  content: "Let ϕ : M → N be a homomorphism of R-modules. Then the kernel and image of ϕ are R-modules.",
+                  type: "theorem"
+                },
+                {
+                  id: "step1",
+                  label: "Definition of Kernel",
+                  content: "The kernel of ϕ is defined as Ker(ϕ) = {m ∈ M : ϕ(m) = 0}, the set of all elements in M that map to zero in N.",
+                  type: "definition",
+                  prerequisites: []
+                },
+                {
+                  id: "step2",
+                  label: "Kernel is a Subgroup",
+                  content: "First, we show Ker(ϕ) is a subgroup of the additive group of M: 0 ∈ Ker(ϕ) since ϕ(0) = 0. If x, y ∈ Ker(ϕ), then ϕ(x+y) = ϕ(x) + ϕ(y) = 0 + 0 = 0, so x+y ∈ Ker(ϕ). If x ∈ Ker(ϕ), then ϕ(-x) = -ϕ(x) = -0 = 0, so -x ∈ Ker(ϕ).",
+                  type: "proof-step",
+                  prerequisites: ["step1"]
+                },
+                {
+                  id: "step3",
+                  label: "Scalar Multiplication in Kernel",
+                  content: "For any r ∈ R and x ∈ Ker(ϕ), we have ϕ(r·x) = r·ϕ(x) = r·0 = 0, so r·x ∈ Ker(ϕ). This shows the kernel is closed under scalar multiplication.",
+                  type: "proof-step",
+                  prerequisites: ["step2", "module-homomorphism-def"]
+                },
+                {
+                  id: "step4",
+                  label: "Kernel is an R-module",
+                  content: "Since Ker(ϕ) is a subgroup of M that is closed under scalar multiplication by elements of R, it is an R-submodule of M, and therefore an R-module.",
+                  type: "conclusion",
+                  prerequisites: ["step3", "submodule-criterion"]
+                },
+                {
+                  id: "step5",
+                  label: "Definition of Image",
+                  content: "The image of ϕ is defined as Im(ϕ) = {ϕ(m) : m ∈ M}, the set of all elements in N that are the image of some element in M.",
+                  type: "definition",
+                  prerequisites: []
+                },
+                {
+                  id: "step6",
+                  label: "Image is a Subgroup",
+                  content: "We now show Im(ϕ) is a subgroup of the additive group of N: 0 ∈ Im(ϕ) since ϕ(0) = 0. If ϕ(x), ϕ(y) ∈ Im(ϕ), then ϕ(x) + ϕ(y) = ϕ(x+y) ∈ Im(ϕ). If ϕ(x) ∈ Im(ϕ), then -ϕ(x) = ϕ(-x) ∈ Im(ϕ).",
+                  type: "proof-step",
+                  prerequisites: ["step5"]
+                },
+                {
+                  id: "step7",
+                  label: "Scalar Multiplication in Image",
+                  content: "For any r ∈ R and ϕ(x) ∈ Im(ϕ), we have r·ϕ(x) = ϕ(r·x) ∈ Im(ϕ). This shows the image is closed under scalar multiplication.",
+                  type: "proof-step",
+                  prerequisites: ["step6", "module-homomorphism-def"]
+                },
+                {
+                  id: "step8",
+                  label: "Image is an R-module",
+                  content: "Since Im(ϕ) is a subgroup of N that is closed under scalar multiplication by elements of R, it is an R-submodule of N, and therefore an R-module.",
+                  type: "conclusion",
+                  prerequisites: ["step7", "submodule-criterion"]
+                }
+              ],
+              connections: [
+                { source: "step0", target: "step1", label: "define" },
+                { source: "step0", target: "step5", label: "define" },
+                { source: "step1", target: "step2", label: "analyze" },
+                { source: "step2", target: "step3", label: "next show" },
+                { source: "step3", target: "step4", label: "conclude" },
+                { source: "step5", target: "step6", label: "analyze" },
+                { source: "step6", target: "step7", label: "next show" },
+                { source: "step7", target: "step8", label: "conclude" },
+                { source: "module-homomorphism-def", target: "step3", label: "apply" },
+                { source: "module-homomorphism-def", target: "step7", label: "apply" },
+                { source: "submodule-criterion", target: "step4", label: "apply" },
+                { source: "submodule-criterion", target: "step8", label: "apply" }
+              ],
+              supportingConcepts: [
+                { id: "module-homomorphism-def", label: "Module Homomorphism", content: "A function ϕ: M → N between R-modules that preserves addition (ϕ(x+y) = ϕ(x) + ϕ(y)) and scalar multiplication (ϕ(r·x) = r·ϕ(x)) for all x,y ∈ M and r ∈ R." },
+                { id: "submodule-criterion", label: "Submodule Criterion", content: "A subset S of an R-module M is an R-submodule if: (1) S is non-empty, (2) S is closed under addition, and (3) S is closed under scalar multiplication by elements of R." }
+              ],
+              stepLayout: {
+                "step0": { x: 400, y: 80 },
+                "step1": { x: 250, y: 150 },
+                "step2": { x: 250, y: 220 },
+                "step3": { x: 250, y: 290 },
+                "step4": { x: 250, y: 360 },
+                "step5": { x: 550, y: 150 },
+                "step6": { x: 550, y: 220 },
+                "step7": { x: 550, y: 290 },
+                "step8": { x: 550, y: 360 },
+                "module-homomorphism-def": { x: 400, y: 220 },
+                "submodule-criterion": { x: 400, y: 360 }
+              }
+            },
+            'z-one-half-not-free': {
+              name: "Z[1/2] is Not a Free Z-module",
+              description: "Proof that Z[1/2] = {m/2ⁿ | m,n ∈ Z, n ≥ 0} is not a free Z-module",
+              overview: "This proof shows that Z[1/2] is not a free Z-module by demonstrating it's not of rank 1, and that no two elements are algebraically independent.",
+              steps: [
+                {
+                  id: "step0",
+                  label: "Theorem Statement",
+                  content: "Z[1/2] is not a free Z-module. Specifically: (a) Z[1/2] is not of rank 1, and (b) No two elements in Z[1/2] are algebraically independent over Z.",
+                  type: "theorem"
+                },
+                {
+                  id: "step1",
+                  label: "Definition of Z[1/2]",
+                  content: "Z[1/2] consists of all numbers of the form m/2ⁿ where m ∈ Z and n ≥ 0 is a non-negative integer. It's the ring obtained by adjoining 1/2 to the integers.",
+                  type: "definition",
+                  prerequisites: []
+                },
+                {
+                  id: "step2",
+                  label: "Part (a): Not of Rank 1",
+                  content: "Suppose Z[1/2] is a free Z-module of rank 1. Then Z[1/2] ≅ Z, which means there is a Z-module isomorphism between them. But in Z, every element except 0 has infinite order, while in Z[1/2], elements like 1/2ⁿ have order 2ⁿ (since 2ⁿ·(1/2ⁿ) = 1 ∈ Z). This contradiction shows Z[1/2] cannot be of rank 1.",
+                  type: "proof-step",
+                  prerequisites: ["step1", "free-module-def"]
+                },
+                {
+                  id: "step3",
+                  label: "Alternative Approach for (a)",
+                  content: "Another way to see this: if Z[1/2] were free of rank 1, it would be generated by a single element g. But then all elements would be of the form ng for n ∈ Z. However, if g = a/2ᵏ (in lowest form), we can't represent 1/2ᵏ⁺¹ as ng, which is a contradiction.",
+                  type: "proof-step",
+                  prerequisites: ["step2"]
+                },
+                {
+                  id: "step4",
+                  label: "Algebraic Relations in Z[1/2]",
+                  content: "For any two elements a,b ∈ Z[1/2], we can write a = m/2ⁿ and b = p/2ᵍ for integers m,n,p,g. Let's set d = max(n,g), so a = m/2ⁿ = (m·2ᵈ⁻ⁿ)/2ᵈ and b = p/2ᵍ = (p·2ᵈ⁻ᵍ)/2ᵈ. This means 2ᵈa and 2ᵈb are both integers.",
+                  type: "proof-step",
+                  prerequisites: ["step1"]
+                },
+                {
+                  id: "step5",
+                  label: "Part (b): No Algebraically Independent Pair",
+                  content: "For any a,b ∈ Z[1/2], we've shown there exists d > 0 such that 2ᵈa and 2ᵈb are both integers. This gives us the algebraic relation 2ᵈ·a - (2ᵈa)·1 = 0 and 2ᵈ·b - (2ᵈb)·1 = 0, showing a and b satisfy non-trivial relations with coefficients in Z. Thus, no two elements are algebraically independent over Z.",
+                  type: "proof-step",
+                  prerequisites: ["step4", "algebraic-independence-def"]
+                },
+                {
+                  id: "step6",
+                  label: "Conclusion",
+                  content: "We've proven that Z[1/2] is not of rank 1 and that no two elements in Z[1/2] are algebraically independent over Z. Therefore, Z[1/2] is not a free Z-module of any rank.",
+                  type: "conclusion",
+                  prerequisites: ["step3", "step5", "free-module-characterization"]
+                }
+              ],
+              connections: [
+                { source: "step0", target: "step1", label: "define" },
+                { source: "step1", target: "step2", label: "prove part (a)" },
+                { source: "step2", target: "step3", label: "alternative" },
+                { source: "step1", target: "step4", label: "analyze" },
+                { source: "step4", target: "step5", label: "prove part (b)" },
+                { source: "step3", target: "step6", label: "conclude" },
+                { source: "step5", target: "step6", label: "conclude" },
+                { source: "free-module-def", target: "step2", label: "apply" },
+                { source: "algebraic-independence-def", target: "step5", label: "apply" },
+                { source: "free-module-characterization", target: "step6", label: "apply" }
+              ],
+              supportingConcepts: [
+                { id: "free-module-def", label: "Free Module", content: "An R-module M is free if it has a basis, i.e., a linearly independent set that generates M. A free module of rank 1 is isomorphic to R itself." },
+                { id: "algebraic-independence-def", label: "Algebraic Independence", content: "Elements a₁,...,aₙ in a ring are algebraically independent over a subring R if the only polynomial P with coefficients in R such that P(a₁,...,aₙ) = 0 is the zero polynomial." },
+                { id: "free-module-characterization", label: "Free Module Characterization", content: "An R-module is free if and only if it is a direct sum of copies of R. Elements in a free R-module can be algebraically independent over R." }
+              ],
+              stepLayout: {
+                "step0": { x: 400, y: 80 },
+                "step1": { x: 400, y: 150 },
+                "step2": { x: 250, y: 220 },
+                "step3": { x: 250, y: 290 },
+                "step4": { x: 550, y: 220 },
+                "step5": { x: 550, y: 290 },
+                "step6": { x: 400, y: 360 },
+                "free-module-def": { x: 150, y: 220 },
+                "algebraic-independence-def": { x: 650, y: 220 },
+                "free-module-characterization": { x: 400, y: 290 }
+              }
+            },
+            'integral-closure-ring': {
+              name: "Integral Closure Forms a Ring",
+              description: "Proof that the integral closure of a ring R in S is itself a ring",
+              overview: "This proof establishes that the set of elements in S that are integral over R forms a ring, using properties of integral elements.",
+              steps: [
+                {
+                  id: "step0",
+                  label: "Theorem Statement",
+                  content: "Let R be a subring of S. The integral closure of R in S, defined as the set T of elements in S that are integral over R, forms a ring.",
+                  type: "theorem"
+                },
+                {
+                  id: "step1",
+                  label: "Definition of Integral Element",
+                  content: "An element s ∈ S is integral over R if there exists a monic polynomial f(x) ∈ R[x] such that f(s) = 0. That is, s satisfies an equation sⁿ + r₁sⁿ⁻¹ + ... + rₙ₋₁s + rₙ = 0 where all rᵢ ∈ R.",
+                  type: "definition",
+                  prerequisites: []
+                },
+                {
+                  id: "step2",
+                  label: "T Contains R",
+                  content: "First, note that R ⊆ T. For any r ∈ R, the polynomial f(x) = x - r is monic with coefficients in R, and f(r) = 0. Thus, r is integral over R.",
+                  type: "proof-step",
+                  prerequisites: ["step1"]
+                },
+                {
+                  id: "step3",
+                  label: "Closure Under Addition",
+                  content: "Let a, b ∈ T. We need to show a + b ∈ T. Since a and b are integral over R, they generate finitely generated R-subalgebras R[a] and R[b] that are finitely generated as R-modules. Consider R[a,b], the R-algebra generated by a and b. By Proposition 4.4, R[a,b] is finitely generated as an R-module.",
+                  type: "proof-step",
+                  prerequisites: ["step1", "prop-four-four"]
+                },
+                {
+                  id: "step4",
+                  label: "Finitely Generated Module Implies Integral",
+                  content: "Since a + b ∈ R[a,b], and R[a,b] is a finitely generated R-module, every element of R[a,b] (including a + b) is integral over R. This follows because if R[a,b] is generated by {v₁,...,vₙ}, then for any v ∈ R[a,b], the set {v, v²,...,vⁿ⁺¹} must be linearly dependent over R, giving a monic polynomial that v satisfies.",
+                  type: "proof-step",
+                  prerequisites: ["step3", "fg-module-integrality"]
+                },
+                {
+                  id: "step5",
+                  label: "Closure Under Multiplication",
+                  content: "Similarly, for a, b ∈ T, we can show a·b ∈ T. Since a·b ∈ R[a,b], and we've established that R[a,b] is a finitely generated R-module, all elements of R[a,b] (including a·b) are integral over R.",
+                  type: "proof-step",
+                  prerequisites: ["step4"]
+                },
+                {
+                  id: "step6",
+                  label: "Closure Under Negation",
+                  content: "If a ∈ T satisfies a monic polynomial f(x) = xⁿ + r₁xⁿ⁻¹ + ... + rₙ, then -a satisfies the monic polynomial g(x) = f(-x), which has coefficients in R. Thus, if a ∈ T, then -a ∈ T.",
+                  type: "proof-step",
+                  prerequisites: ["step1"]
+                },
+                {
+                  id: "step7",
+                  label: "T is a Ring",
+                  content: "We've shown T contains R (so it contains 0 and 1), and is closed under addition, multiplication, and negation. Therefore, T is a subring of S, which proves the theorem.",
+                  type: "conclusion",
+                  prerequisites: ["step2", "step4", "step5", "step6", "subring-test"]
+                }
+              ],
+              connections: [
+                { source: "step0", target: "step1", label: "define" },
+                { source: "step1", target: "step2", label: "show" },
+                { source: "step1", target: "step3", label: "analyze" },
+                { source: "step3", target: "step4", label: "prove" },
+                { source: "step4", target: "step5", label: "apply to" },
+                { source: "step1", target: "step6", label: "show" },
+                { source: "step2", target: "step7", label: "combine" },
+                { source: "step4", target: "step7", label: "combine" },
+                { source: "step5", target: "step7", label: "combine" },
+                { source: "step6", target: "step7", label: "combine" },
+                { source: "prop-four-four", target: "step3", label: "use" },
+                { source: "fg-module-integrality", target: "step4", label: "apply" },
+                { source: "subring-test", target: "step7", label: "apply" }
+              ],
+              supportingConcepts: [
+                { id: "prop-four-four", label: "Proposition 4.4", content: "If R is a subring of S, and a₁,...,aₙ ∈ S are all integral over R, then R[a₁,...,aₙ] is a finitely generated R-module." },
+                { id: "fg-module-integrality", label: "Finitely Generated Module Property", content: "If M is a finitely generated R-module, then every element of M satisfies a monic polynomial with coefficients in R." },
+                { id: "subring-test", label: "Subring Test", content: "A subset T of a ring S is a subring if it contains 1, and is closed under subtraction and multiplication." }
+              ],
+              stepLayout: {
+                "step0": { x: 400, y: 80 },
+                "step1": { x: 400, y: 150 },
+                "step2": { x: 250, y: 210 },
+                "step3": { x: 400, y: 270 },
+                "step4": { x: 400, y: 340 },
+                "step5": { x: 550, y: 210 },
+                "step6": { x: 250, y: 340 },
+                "step7": { x: 400, y: 410 },
+                "prop-four-four": { x: 250, y: 270 },
+                "fg-module-integrality": { x: 550, y: 340 },
+                "subring-test": { x: 250, y: 410 }
+              }
+            },
+            'variety-homomorphism': {
+              name: "Ring Homomorphism and Varieties",
+              description: "Analysis of the homomorphism K[x] → K[x,y]/(1-yg(x)) and its geometric interpretation",
+              overview: "This proof examines the properties of a particular ring homomorphism, interpreting it in terms of varieties and analyzing the correspondence between algebra and geometry.",
+              steps: [
+                {
+                  id: "step0",
+                  label: "Problem Statement",
+                  content: "Let g(x) ∈ K[x]. Consider the homomorphism φ: K[x] → K[x,y]/(1-yg(x)). We need to (a) explain why φ is not an isomorphism, (b) interpret the map geometrically as A¹ ← V(1-yg(x)), (c) determine conditions for isomorphism with K[x,y]/(1-yh(x)), and (d) show K[x,y]/(1-yg(x)) is integral over K[x̄+ȳ].",
+                  type: "problem"
+                },
+                {
+                  id: "step1",
+                  label: "Analysis of the Homomorphism",
+                  content: "The homomorphism φ: K[x] → K[x,y]/(1-yg(x)) sends x to x̄, the residue class of x in the quotient ring. We first need to check if φ is injective and surjective.",
+                  type: "proof-step",
+                  prerequisites: ["ring-homomorphism-def"]
+                },
+                {
+                  id: "step2",
+                  label: "Part (a): Not an Isomorphism",
+                  content: "The homomorphism φ is injective (if p(x) ∈ K[x] maps to 0, then p(x̄) = 0 in the quotient, which implies p(x) = 0 since 1-yg(x) doesn't involve just x alone). However, φ is not surjective because the element ȳ in K[x,y]/(1-yg(x)) is not in the image of φ. Therefore, φ is not an isomorphism.",
+                  type: "proof-step",
+                  prerequisites: ["step1", "isomorphism-def"]
+                },
+                {
+                  id: "step3",
+                  label: "Relation in the Quotient",
+                  content: "In K[x,y]/(1-yg(x)), we have the relation 1-yg(x) = 0, which means ȳg(x̄) = 1, or ȳ = 1/g(x̄) when g(x̄) ≠ 0.",
+                  type: "proof-step",
+                  prerequisites: ["step2"]
+                },
+                {
+                  id: "step4",
+                  label: "Part (b): Geometric Interpretation",
+                  content: "Geometrically, V(1-yg(x)) = {(a,b) ∈ A² : 1-bg(a) = 0} = {(a,1/g(a)) : g(a) ≠ 0}. The map V(1-yg(x)) → A¹ is the projection onto the x-coordinate, sending (a,1/g(a)) to a. The points in A¹ not in the image are precisely those where g(a) = 0, since we can't form the point (a,1/g(a)) when g(a) = 0.",
+                  type: "proof-step",
+                  prerequisites: ["step3", "variety-def"]
+                },
+                {
+                  id: "step5",
+                  label: "Part (c): Isomorphism Conditions",
+                  content: "Two rings K[x,y]/(1-yg(x)) and K[x,y]/(1-yh(x)) are isomorphic as K-algebras if and only if they define isomorphic varieties. This happens when g and h have the same set of roots (possibly with different multiplicities). More precisely, they're isomorphic if and only if g(x)/h(x) = u(x)/v(x) where u(x) and v(x) are relatively prime to both g(x) and h(x).",
+                  type: "proof-step",
+                  prerequisites: ["step4", "ring-isomorphism-varieties"]
+                },
+                {
+                  id: "step6",
+                  label: "Part (d): Integral Extension",
+                  content: "Let z = x̄ + ȳ in K[x,y]/(1-yg(x)). For any element in this ring, we can use the relation ȳg(x̄) = 1 to express it as a polynomial in x̄. We need to show this ring is integral over K[z].",
+                  type: "proof-step",
+                  prerequisites: ["step3", "integral-extension-def"]
+                },
+                {
+                  id: "step7",
+                  label: "Integrality of x̄",
+                  content: "Consider x̄. We know ȳ = 1/g(x̄), so z = x̄ + 1/g(x̄). This means g(x̄)z = g(x̄)x̄ + 1. Rearranging, we get g(x̄)x̄ = g(x̄)z - 1. Thus, x̄ satisfies a polynomial with coefficients involving z, showing x̄ is integral over K[z].",
+                  type: "proof-step",
+                  prerequisites: ["step6"]
+                },
+                {
+                  id: "step8",
+                  label: "Integrality of ȳ",
+                  content: "Since ȳ = 1/g(x̄) and we've shown x̄ is integral over K[z], ȳ is also integral over K[z]. This is because the integral elements form a ring, and if x̄ is integral, so are g(x̄) and 1/g(x̄).",
+                  type: "proof-step",
+                  prerequisites: ["step7", "integral-closure-ring"]
+                },
+                {
+                  id: "step9",
+                  label: "Conclusion",
+                  content: "Since x̄ and ȳ are integral over K[z], and they generate K[x,y]/(1-yg(x)), the entire ring K[x,y]/(1-yg(x)) is integral over K[z], where z = x̄ + ȳ.",
+                  type: "conclusion",
+                  prerequisites: ["step8", "integral-generators"]
+                }
+              ],
+              connections: [
+                { source: "step0", target: "step1", label: "analyze" },
+                { source: "step1", target: "step2", label: "prove (a)" },
+                { source: "step2", target: "step3", label: "derive" },
+                { source: "step3", target: "step4", label: "interpret" },
+                { source: "step4", target: "step5", label: "prove (c)" },
+                { source: "step3", target: "step6", label: "prove (d)" },
+                { source: "step6", target: "step7", label: "show" },
+                { source: "step7", target: "step8", label: "extend to" },
+                { source: "step8", target: "step9", label: "conclude" },
+                { source: "ring-homomorphism-def", target: "step1", label: "define" },
+                { source: "isomorphism-def", target: "step2", label: "apply" },
+                { source: "variety-def", target: "step4", label: "use" },
+                { source: "ring-isomorphism-varieties", target: "step5", label: "apply" },
+                { source: "integral-extension-def", target: "step6", label: "define" },
+                { source: "integral-closure-ring", target: "step8", label: "apply" },
+                { source: "integral-generators", target: "step9", label: "use" }
+              ],
+              supportingConcepts: [
+                { id: "ring-homomorphism-def", label: "Ring Homomorphism", content: "A function φ: R → S between rings that preserves addition and multiplication. It is an isomorphism if it is both injective and surjective." },
+                { id: "isomorphism-def", label: "Isomorphism", content: "A bijective homomorphism whose inverse is also a homomorphism. For rings, a homomorphism is an isomorphism if and only if it is bijective." },
+                { id: "variety-def", label: "Variety", content: "The set of all points in affine space where all polynomials in a given ideal vanish." },
+                { id: "ring-isomorphism-varieties", label: "Ring-Variety Correspondence", content: "If two coordinate rings are isomorphic as K-algebras, then the corresponding varieties are isomorphic." },
+                { id: "integral-extension-def", label: "Integral Extension", content: "An element b is integral over a ring R if it satisfies a monic polynomial with coefficients in R." },
+                { id: "integral-generators", label: "Integral Generators", content: "If elements a₁,...,aₙ are integral over R and generate S as a ring, then all elements of S are integral over R." }
+              ],
+              stepLayout: {
+                "step0": { x: 400, y: 70 },
+                "step1": { x: 400, y: 140 },
+                "step2": { x: 250, y: 210 },
+                "step3": { x: 400, y: 210 },
+                "step4": { x: 250, y: 280 },
+                "step5": { x: 250, y: 350 },
+                "step6": { x: 550, y: 210 },
+                "step7": { x: 550, y: 280 },
+                "step8": { x: 550, y: 350 },
+                "step9": { x: 400, y: 420 },
+                "ring-homomorphism-def": { x: 250, y: 140 },
+                "isomorphism-def": { x: 100, y: 210 },
+                "variety-def": { x: 100, y: 280 },
+                "ring-isomorphism-varieties": { x: 100, y: 350 },
+                "integral-extension-def": { x: 700, y: 210 },
+                "integral-closure-ring": { x: 700, y: 350 },
+                "integral-generators": { x: 550, y: 420 }
+              }
+            },
+            'change-of-variables': {
+              name: "Change of Variables for Monic Polynomial",
+              description: "Finding a change of variables that transforms f = x³y²z⁴ into a monic polynomial in x",
+              overview: "This proof shows how to find an appropriate change of variables that transforms a monomial into a monic polynomial in one variable.",
+              steps: [
+                {
+                  id: "step0",
+                  label: "Problem Statement",
+                  content: "Let f = x³y²z⁴. Find a change of variables that transforms f into a monic polynomial in x.",
+                  type: "problem"
+                },
+                {
+                  id: "step1",
+                  label: "Goal Analysis",
+                  content: "A monic polynomial in x is a polynomial where the coefficient of the highest power of x is 1. We need to find new variables, say X, Y, Z, such that when we express f in terms of these variables, we get a monic polynomial in X.",
+                  type: "approach",
+                  prerequisites: []
+                },
+                {
+                  id: "step2",
+                  label: "Identify Exponents",
+                  content: "In f = x³y²z⁴, we have exponents 3 for x, 2 for y, and 4 for z. To get a monic polynomial, we need a substitution where the coefficient of the highest power of X is 1.",
+                  type: "proof-step",
+                  prerequisites: ["step1"]
+                },
+                {
+                  id: "step3",
+                  label: "Substitution Approach",
+                  content: "Let's try a substitution of the form X = x, Y = y/x^a, Z = z/x^b for some constants a and b. This will allow us to extract powers of x from y and z.",
+                  type: "proof-step",
+                  prerequisites: ["step2"]
+                },
+                {
+                  id: "step4",
+                  label: "Transforming f",
+                  content: "With this substitution, we get f = x³(Y·x^a)²(Z·x^b)⁴ = x³·Y²·x^(2a)·Z⁴·x^(4b) = x^(3+2a+4b)·Y²·Z⁴.",
+                  type: "proof-step",
+                  prerequisites: ["step3"]
+                },
+                {
+                  id: "step5",
+                  label: "Making f Monic",
+                  content: "To make this monic in X, we need the coefficient Y²·Z⁴ to be 1. One way to do this is to choose Y = Z = 1. This means setting y = x^a and z = x^b.",
+                  type: "proof-step",
+                  prerequisites: ["step4"]
+                },
+                {
+                  id: "step6",
+                  label: "Simple Solution",
+                  content: "One simple solution is to set Y = y and Z = z, but choose X = x·y^(2/3)·z^(4/3). With this substitution, f = X³, which is monic in X.",
+                  type: "proof-step",
+                  prerequisites: ["step2"]
+                },
+                {
+                  id: "step7",
+                  label: "Alternative Approach",
+                  content: "Another approach is to set X = x, Y = y·x^(-3/2), and Z = z·x^(-3/4). Then f = x³·(Y·x^(3/2))²·(Z·x^(3/4))⁴ = x³·Y²·x³·Z⁴·x³ = x^9·Y²·Z⁴. This will be monic if Y²·Z⁴ = 1, which we can achieve with Y = Z = 1.",
+                  type: "proof-step",
+                  prerequisites: ["step4"]
+                },
+                {
+                  id: "step8",
+                  label: "Final Solution",
+                  content: "Therefore, a valid change of variables is: X = x, Y = y·x^(-3/2), Z = z·x^(-3/4), with the inverse transformation y = Y·x^(3/2), z = Z·x^(3/4). In terms of the new variables, f = x^9 = X^9, which is a monic polynomial in X.",
+                  type: "conclusion",
+                  prerequisites: ["step7"]
+                }
+              ],
+              connections: [
+                { source: "step0", target: "step1", label: "analyze" },
+                { source: "step1", target: "step2", label: "examine" },
+                { source: "step2", target: "step3", label: "propose" },
+                { source: "step3", target: "step4", label: "compute" },
+                { source: "step4", target: "step5", label: "determine" },
+                { source: "step2", target: "step6", label: "alternate" },
+                { source: "step4", target: "step7", label: "refine" },
+                { source: "step7", target: "step8", label: "conclude" }
+              ],
+              supportingConcepts: [],
+              stepLayout: {
+                "step0": { x: 400, y: 80 },
+                "step1": { x: 400, y: 150 },
+                "step2": { x: 400, y: 220 },
+                "step3": { x: 300, y: 290 },
+                "step4": { x: 300, y: 360 },
+                "step5": { x: 300, y: 430 },
+                "step6": { x: 500, y: 290 },
+                "step7": { x: 500, y: 360 },
+                "step8": { x: 400, y: 500 }
+              }
+            },
+            'hilbert-nullstellensatz': {
+              name: "Hilbert's Nullstellensatz",
+              description: "Establishes the fundamental connection between varieties and radical ideals: IV(I) = √I when K is algebraically closed",
+              overview: "This theorem is the cornerstone of algebraic geometry, showing how geometric objects and algebraic objects correspond perfectly in an algebraically closed field.",
+              steps: [
+                {
+                  id: "step0",
+                  label: "Theorem Statement",
+                  content: "If K is algebraically closed, then I(V(I)) = √I for any ideal I in K[x₁,...,xₙ].",
+                  type: "theorem"
+                },
+                {
+                  id: "step1",
+                  label: "Containment I(V(I)) ⊇ √I",
+                  content: "First, we need to show that √I ⊆ I(V(I)). Let f ∈ √I, so fᵏ ∈ I for some k. For any point p ∈ V(I), all polynomials in I vanish at p, so fᵏ(p) = 0. This means f(p) = 0, so f ∈ I(V(I)).",
+                  type: "proof-step",
+                  prerequisites: ["radical-def", "vanishing-at-points"]
+                },
+                {
+                  id: "step2",
+                  label: "Weak Nullstellensatz",
+                  content: "If I is a proper ideal in K[x₁,...,xₙ] and K is algebraically closed, then V(I) is non-empty. In particular, if I ≠ K[x₁,...,xₙ], then there exists a point p ∈ V(I).",
+                  type: "lemma",
+                  prerequisites: ["maximal-ideal-point"]
+                },
+                {
+                  id: "step3",
+                  label: "Rabinowitsch Trick",
+                  content: "For any f ∉ I, introduce a new variable t and consider the ideal J = I + ⟨1 - tf⟩ in K[x₁,...,xₙ,t]. If 1 ∈ J, then we can derive a contradiction showing f ∈ √I.",
+                  type: "technique",
+                  prerequisites: ["step2"]
+                },
+                {
+                  id: "step4",
+                  label: "Contradiction Argument",
+                  content: "Assuming I(V(I)) ⊋ √I, we get a polynomial f ∈ I(V(I)) with f ∉ √I. Using the Rabinowitsch trick and the weak Nullstellensatz, we arrive at a contradiction by constructing a point that must simultaneously belong to V(I) and not satisfy f(p) = 0.",
+                  type: "proof-step",
+                  prerequisites: ["step3"]
+                },
+                {
+                  id: "step5",
+                  label: "Conclusion",
+                  content: "Therefore, I(V(I)) = √I when K is algebraically closed, establishing the exact correspondence between radical ideals and varieties.",
+                  type: "conclusion",
+                  prerequisites: ["step1", "step4"]
+                }
+              ],
+              connections: [
+                { source: "step0", target: "step1", label: "begin proof" },
+                { source: "step1", target: "step2", label: "for other direction" },
+                { source: "step2", target: "step3", label: "apply" },
+                { source: "step3", target: "step4", label: "leads to" },
+                { source: "step4", target: "step5", label: "therefore" },
+                { source: "radical-def", target: "step1", label: "uses" },
+                { source: "vanishing-at-points", target: "step1", label: "applies" },
+                { source: "maximal-ideal-point", target: "step2", label: "corresponds to" },
+              ],
+              supportingConcepts: [
+                { id: "radical-def", label: "Definition of Radical", content: "The radical of an ideal I, denoted √I, is the set of all elements f such that fᵏ ∈ I for some positive integer k." },
+                { id: "vanishing-at-points", label: "Vanishing at Points", content: "For a point p ∈ V(I), all polynomials in I evaluate to zero at p." },
+                { id: "maximal-ideal-point", label: "Maximal Ideals and Points", content: "In an algebraically closed field K, maximal ideals in K[x₁,...,xₙ] correspond exactly to points in Aⁿ." },
+              ],
+              stepLayout: {
+                "step0": { x: 400, y: 100 },
+                "step1": { x: 400, y: 180 },
+                "step2": { x: 400, y: 260 },
+                "step3": { x: 400, y: 340 },
+                "step4": { x: 400, y: 420 },
+                "step5": { x: 400, y: 500 },
+                "radical-def": { x: 200, y: 180 },
+                "vanishing-at-points": { x: 600, y: 180 },
+                "maximal-ideal-point": { x: 600, y: 260 },
+              }
+            },
+            'groebner-basis-theorem': {
+              name: "Groebner Basis Theorem",
+              description: "Demonstrates that every ideal has a Groebner basis, and how this basis provides a generalization of polynomial division to multiple variables",
+              overview: "This fundamental theorem shows that for any ideal, there exists a special generating set (the Groebner basis) that enables algorithmic computations with polynomials.",
+              steps: [
+                {
+                  id: "step0",
+                  label: "Theorem Statement",
+                  content: "Let I be an ideal in K[x₁,...,xₙ]. Let ⟨LT(I)⟩ be its ideal of leading terms, and let ⟨LT(I)⟩ = ⟨xᵅ¹,...,xᵅᵗ⟩. There exist polynomials g₁,...,gₜ ∈ I such that LM(gᵢ) = xᵅⁱ. Furthermore, I = ⟨g₁,...,gₜ⟩.",
+                  type: "theorem"
+                },
+                {
+                  id: "step1",
+                  label: "Monomial Ordering Assumption",
+                  content: "We first fix a monomial ordering < that is a total order, respects multiplication, and is a well-ordering on the set of monomials.",
+                  type: "assumption",
+                  prerequisites: ["monomial-order-def"]
+                },
+                {
+                  id: "step2",
+                  label: "Leading Term Ideal Properties",
+                  content: "For an ideal I, the ideal ⟨LT(I)⟩ is generated by the leading terms of all polynomials in I. By the Hilbert Basis Theorem, this ideal is finitely generated by a set of monomials {xᵅ¹,...,xᵅᵗ}.",
+                  type: "proof-step",
+                  prerequisites: ["hilbert-basis", "leading-term-def"]
+                },
+                {
+                  id: "step3",
+                  label: "Constructing the Groebner Basis",
+                  content: "For each generator xᵅⁱ of ⟨LT(I)⟩, we can find a polynomial gᵢ ∈ I with LM(gᵢ) = xᵅⁱ. We show that the set {g₁,...,gₜ} generates I.",
+                  type: "proof-step",
+                  prerequisites: ["step2"]
+                },
+                {
+                  id: "step4",
+                  label: "Division Algorithm Application",
+                  content: "Using the division algorithm with respect to {g₁,...,gₜ}, any f ∈ I can be written as f = q₁g₁ + ... + qₜgₜ + r, where no term in r is divisible by any LT(gᵢ).",
+                  type: "proof-step",
+                  prerequisites: ["division-algorithm", "step3"]
+                },
+                {
+                  id: "step5",
+                  label: "Remainder Must Be Zero",
+                  content: "The remainder r must be in I. Since no term in r is divisible by any LT(gᵢ), if r ≠ 0, then LT(r) would not be in ⟨LT(I)⟩, which is a contradiction. Therefore r = 0.",
+                  type: "proof-step",
+                  prerequisites: ["step4"]
+                },
+                {
+                  id: "step6",
+                  label: "Conclusion",
+                  content: "Therefore, I = ⟨g₁,...,gₜ⟩ and {g₁,...,gₜ} is a Groebner basis for I.",
+                  type: "conclusion",
+                  prerequisites: ["step5"]
+                }
+              ],
+              connections: [
+                { source: "step0", target: "step1", label: "begin proof" },
+                { source: "step1", target: "step2", label: "allows" },
+                { source: "step2", target: "step3", label: "leads to" },
+                { source: "step3", target: "step4", label: "apply" },
+                { source: "step4", target: "step5", label: "analyze" },
+                { source: "step5", target: "step6", label: "therefore" },
+                { source: "monomial-order-def", target: "step1", label: "defines" },
+                { source: "hilbert-basis", target: "step2", label: "enables" },
+                { source: "leading-term-def", target: "step2", label: "clarifies" },
+                { source: "division-algorithm", target: "step4", label: "method for" },
+              ],
+              supportingConcepts: [
+                { id: "monomial-order-def", label: "Monomial Ordering", content: "A monomial ordering is a total order on monomials that respects multiplication and is a well-ordering." },
+                { id: "hilbert-basis", label: "Hilbert Basis Theorem", content: "If R is a Noetherian ring, then R[y] is also Noetherian. Consequently, every ideal in K[x₁,...,xₙ] is finitely generated." },
+                { id: "leading-term-def", label: "Leading Term", content: "Given a polynomial f and a monomial ordering, LT(f) is the largest term of f according to the ordering." },
+                { id: "division-algorithm", label: "Division Algorithm", content: "A generalization of polynomial division to multivariate polynomials given a monomial ordering." },
+              ],
+              stepLayout: {
+                "step0": { x: 400, y: 100 },
+                "step1": { x: 400, y: 180 },
+                "step2": { x: 400, y: 260 },
+                "step3": { x: 400, y: 340 },
+                "step4": { x: 400, y: 420 },
+                "step5": { x: 400, y: 500 },
+                "step6": { x: 400, y: 580 },
+                "monomial-order-def": { x: 200, y: 180 },
+                "hilbert-basis": { x: 200, y: 260 },
+                "leading-term-def": { x: 600, y: 260 },
+                "division-algorithm": { x: 600, y: 420 },
+              }
+            },
+            'finite-field-theorem': {
+              name: "Structure of Finite Fields",
+              description: "Characterizes the fundamental properties of fields with finitely many elements",
+              overview: "This theorem establishes the size, structure, and uniqueness of finite fields, showing that they must have pⁿ elements for some prime p.",
+              steps: [
+                {
+                  id: "step0",
+                  label: "Theorem Statement",
+                  content: "Let K be a field with a finite number of elements. Then: (1) K has pⁿ elements for some prime p and n ∈ N. (2) K is isomorphic to Fₚ[x]/m(x) for some irreducible polynomial m(x) of degree n. (3) Any two fields with pⁿ elements are isomorphic.",
+                  type: "theorem"
+                },
+                {
+                  id: "step1",
+                  label: "Characteristic Analysis",
+                  content: "The characteristic of K must be a prime p. The prime field (subfield generated by 1) is isomorphic to Fₚ = Z/pZ.",
+                  type: "proof-step",
+                  prerequisites: ["characteristic-def"]
+                },
+                {
+                  id: "step2",
+                  label: "Vector Space Structure",
+                  content: "K is a finite-dimensional vector space over Fₚ with dimension n for some n. Thus, K has pⁿ elements.",
+                  type: "proof-step",
+                  prerequisites: ["step1", "vector-space"]
+                },
+                {
+                  id: "step3",
+                  label: "Field Extension Construction",
+                  content: "K is a field extension of Fₚ generated by some element α, so K = Fₚ(α). This element α is algebraic over Fₚ with minimal polynomial m(x) of degree n.",
+                  type: "proof-step",
+                  prerequisites: ["step2", "primitive-element"]
+                },
+                {
+                  id: "step4",
+                  label: "Polynomial Quotient Structure",
+                  content: "K is isomorphic to Fₚ[x]/⟨m(x)⟩ where m(x) is irreducible of degree n over Fₚ.",
+                  type: "proof-step",
+                  prerequisites: ["step3"]
+                },
+                {
+                  id: "step5",
+                  label: "Multiplicative Group Structure",
+                  content: "The multiplicative group K* is cyclic of order pⁿ-1. So there exists an element η whose powers generate all non-zero elements of K.",
+                  type: "proof-step",
+                  prerequisites: ["step2", "group-theory"]
+                },
+                {
+                  id: "step6",
+                  label: "Uniqueness Proof",
+                  content: "Any two fields of size pⁿ are isomorphic to Fₚ[x]/⟨m(x)⟩ for some irreducible polynomial m(x) of degree n. The isomorphism class is determined solely by p and n.",
+                  type: "proof-step",
+                  prerequisites: ["step4", "irreducible-poly-counts"]
+                },
+                {
+                  id: "step7",
+                  label: "Subfield Condition",
+                  content: "A field with pⁿ elements has a subfield with pᵈ elements if and only if d divides n.",
+                  type: "conclusion",
+                  prerequisites: ["step6", "field-extension-theory"]
+                }
+              ],
+              connections: [
+                { source: "step0", target: "step1", label: "begin proof" },
+                { source: "step1", target: "step2", label: "leads to" },
+                { source: "step2", target: "step3", label: "implies" },
+                { source: "step3", target: "step4", label: "shows" },
+                { source: "step2", target: "step5", label: "also implies" },
+                { source: "step4", target: "step6", label: "leads to" },
+                { source: "step6", target: "step7", label: "finally" },
+                { source: "characteristic-def", target: "step1", label: "defines" },
+                { source: "vector-space", target: "step2", label: "structure of" },
+                { source: "primitive-element", target: "step3", label: "theorem about" },
+                { source: "group-theory", target: "step5", label: "uses" },
+                { source: "irreducible-poly-counts", target: "step6", label: "counts" },
+                { source: "field-extension-theory", target: "step7", label: "from" }
+              ],
+              supportingConcepts: [
+                { id: "characteristic-def", label: "Field Characteristic", content: "The characteristic of a field is the smallest positive integer p such that p·1 = 0, or 0 if no such integer exists." },
+                { id: "vector-space", label: "Vector Space Structure", content: "A field extension K/F can be viewed as a vector space over F." },
+                { id: "primitive-element", label: "Primitive Element Theorem", content: "A finite separable field extension is generated by a single element." },
+                { id: "group-theory", label: "Finite Abelian Group Theory", content: "The structure theory of finite abelian groups, particularly the classification of cyclic groups." },
+                { id: "irreducible-poly-counts", label: "Irreducible Polynomial Counts", content: "Results on counting irreducible polynomials of a given degree over finite fields." },
+                { id: "field-extension-theory", label: "Field Extension Theory", content: "The theory of field extensions, particularly finite extensions and their properties." }
+              ],
+              stepLayout: {
+                "step0": { x: 400, y: 100 },
+                "step1": { x: 400, y: 180 },
+                "step2": { x: 400, y: 260 },
+                "step3": { x: 400, y: 340 },
+                "step4": { x: 250, y: 420 },
+                "step5": { x: 550, y: 420 },
+                "step6": { x: 250, y: 500 },
+                "step7": { x: 400, y: 580 },
+                "characteristic-def": { x: 200, y: 180 },
+                "vector-space": { x: 200, y: 260 },
+                "primitive-element": { x: 600, y: 340 },
+                "group-theory": { x: 700, y: 420 },
+                "irreducible-poly-counts": { x: 100, y: 500 },
+                "field-extension-theory": { x: 600, y: 580 },
+              }
+            }
+          };
+
+          // Setup the initial state
+          React.useEffect(() => {
+            const proof = proofs[currentProof];
+            if (proof) {
+              const initialPositions = detailView ? proof.stepLayout : {};
+              setNodePositions(initialPositions);
+              setSelectedNode(null);
+              setCurrentStep(0);
+            }
+          }, [currentProof, detailView]);
+
+          // Handle node click
+          const handleNodeClick = (node) => {
+            setSelectedNode(node);
+            
+            if (node.type === "proof-step" || node.type === "lemma" || node.type === "conclusion") {
+              // Extract the step number from the id
+              const stepMatch = node.id.match(/step(\d+)/);
+              if (stepMatch) {
+                setCurrentStep(parseInt(stepMatch[1]));
+              }
+            }
+          };
+
+          // Function to change the current proof
+          const changeProof = (proofId) => {
+            setCurrentProof(proofId);
+            setDetailView(false);
+          };
+
+          // Toggle detail view
+          const toggleDetailView = () => {
+            setDetailView(!detailView);
+          };
+
+          // Function to navigate through proof steps
+          const navigateSteps = (direction) => {
+            const proof = proofs[currentProof];
+            const proofSteps = proof.steps.filter(s => s.id.startsWith('step'));
+            
+            if (direction === 'next' && currentStep < proofSteps.length - 1) {
+              setCurrentStep(currentStep + 1);
+              setSelectedNode(proofSteps[currentStep + 1]);
+            } else if (direction === 'prev' && currentStep > 0) {
+              setCurrentStep(currentStep - 1);
+              setSelectedNode(proofSteps[currentStep - 1]);
+            }
+          };
+
+          // Function to calculate the path for an arrow between nodes
+          const calculateArrowPath = (source, target, label) => {
+            const sourcePos = nodePositions[source];
+            const targetPos = nodePositions[target];
+            
+            if (!sourcePos || !targetPos) return '';
+            
+            // Calculate the direction vector
+            const dx = targetPos.x - sourcePos.x;
+            const dy = targetPos.y - sourcePos.y;
+            
+            // Normalize the vector
+            const length = Math.sqrt(dx * dx + dy * dy);
+            const unitX = dx / length;
+            const unitY = dy / length;
+            
+            // Start and end points (slightly offset from the node centers)
+            const nodeRadius = 20;
+            const startX = sourcePos.x + unitX * nodeRadius;
+            const startY = sourcePos.y + unitY * nodeRadius;
+            const endX = targetPos.x - unitX * nodeRadius;
+            const endY = targetPos.y - unitY * nodeRadius;
+            
+            // Create a curved path
+            // Fixed: Removed optional chaining
+            const hasReverseLink = proofs[currentProof] && proofs[currentProof].connections && 
+              proofs[currentProof].connections.some(function(l) {
+                return l.source === target && l.target === source;
+              });
+            
+            const midX = (startX + endX) / 2;
+            const midY = (startY + endY) / 2;
+            
+            // Add perpendicular offset for curvature
+            const perpX = -unitY * (hasReverseLink ? 30 : 10);
+            const perpY = unitX * (hasReverseLink ? 30 : 10);
+            
+            const controlX = midX + perpX;
+            const controlY = midY + perpY;
+            
+            return `M${startX},${startY} Q${controlX},${controlY} ${endX},${endY}`;
+          };
+
+          // Function to calculate arrow head points
+          const calculateArrowHead = (source, target) => {
+            const sourcePos = nodePositions[source];
+            const targetPos = nodePositions[target];
+            
+            if (!sourcePos || !targetPos) return '';
+            
+            // Calculate the direction vector
+            const dx = targetPos.x - sourcePos.x;
+            const dy = targetPos.y - sourcePos.y;
+            
+            // Normalize the vector
+            const length = Math.sqrt(dx * dx + dy * dy);
+            const unitX = dx / length;
+            const unitY = dy / length;
+            
+            // Calculate the point where the arrow touches the target node
+            const nodeRadius = 20;
+            const tipX = targetPos.x - unitX * nodeRadius;
+            const tipY = targetPos.y - unitY * nodeRadius;
+            
+            // Calculate perpendicular vector for arrow head
+            const perpX = -unitY;
+            const perpY = unitX;
+            
+            // Arrow head size
+            const headSize = 10;
+            
+            // Points for the arrow head
+            const point1X = tipX - unitX * headSize + perpX * headSize / 2;
+            const point1Y = tipY - unitY * headSize + perpY * headSize / 2;
+            const point2X = tipX - unitX * headSize - perpX * headSize / 2;
+            const point2Y = tipY - unitY * headSize - perpY * headSize / 2;
+            
+            return `${tipX},${tipY} ${point1X},${point1Y} ${point2X},${point2Y}`;
+          };
+
+          // Function to get the midpoint of a path (for placing labels)
+          const getPathMidpoint = (source, target) => {
+            const sourcePos = nodePositions[source];
+            const targetPos = nodePositions[target];
+            
+            if (!sourcePos || !targetPos) return { x: 0, y: 0 };
+            
+            // Get the midpoint with some adjustment for curvature
+            const midX = (sourcePos.x + targetPos.x) / 2;
+            const midY = (sourcePos.y + targetPos.y) / 2;
+            
+            // Calculate the direction vector
+            const dx = targetPos.x - sourcePos.x;
+            const dy = targetPos.y - sourcePos.y;
+            
+            // Normalize the vector
+            const length = Math.sqrt(dx * dx + dy * dy);
+            const unitX = dx / length;
+            const unitY = dy / length;
+            
+            // Add perpendicular offset for the label to follow the curve
+            // Fixed: Removed optional chaining
+            const hasReverseLink = proofs[currentProof] && proofs[currentProof].connections && 
+              proofs[currentProof].connections.some(function(l) {
+                return l.source === target && l.target === source;
+              });
+            
+            const perpX = -unitY * (hasReverseLink ? 25 : 8);
+            const perpY = unitX * (hasReverseLink ? 25 : 8);
+            
+            return {
+              x: midX + perpX,
+              y: midY + perpY
+            };
+          };
+
+          // Drag functionality
+          const [dragState, setDragState] = React.useState({
+            isDragging: false,
+            nodeId: null,
+            offset: { x: 0, y: 0 }
+          });
+
+          const handleMouseDown = (nodeId, e) => {
+            if (!nodePositions[nodeId]) return;
+            
+            const { x, y } = nodePositions[nodeId];
+            const offset = {
+              x: e.clientX - x,
+              y: e.clientY - y
+            };
+            
+            setDragState({
+              isDragging: true,
+              nodeId,
+              offset
+            });
+          };
+
+          const handleMouseMove = (e) => {
+            if (!dragState.isDragging) return;
+            
+            const { nodeId, offset } = dragState;
+            const containerRect = svgRef.current.getBoundingClientRect();
+            
+            const newX = e.clientX - containerRect.left - offset.x;
+            const newY = e.clientY - containerRect.top - offset.y;
+            
+            setNodePositions(function(prev) {
+              const result = {};
+              for (var key in prev) {
+                result[key] = prev[key];
+              }
+              result[nodeId] = {
+                x: newX,
+                y: newY
+              };
+              return result;
+            });
+          };
+
+          const handleMouseUp = () => {
+            setDragState({
+              isDragging: false,
+              nodeId: null,
+              offset: { x: 0, y: 0 }
+            });
+          };
+          
+          React.useEffect(() => {
+            if (dragState.isDragging) {
+              window.addEventListener('mousemove', handleMouseMove);
+              window.addEventListener('mouseup', handleMouseUp);
+              
+              return function cleanup() {
+                window.removeEventListener('mousemove', handleMouseMove);
+                window.removeEventListener('mouseup', handleMouseUp);
+              };
+            }
+          }, [dragState]);
+
+          // Update SVG dimensions based on container size
+          React.useEffect(() => {
+            if (svgRef.current) {
+              const updateDimensions = () => {
+                const container = svgRef.current.parentElement;
+                if (container) {
+                  setDimensions({
+                    width: container.clientWidth,
+                    height: Math.max(container.clientHeight, 600)
+                  });
+                }
+              };
+              
+              updateDimensions();
+              window.addEventListener('resize', updateDimensions);
+              
+              return function cleanup() {
+                window.removeEventListener('resize', updateDimensions);
+              };
+            }
+          }, []);
+
+          // Determine which nodes and connections to display based on current view mode
+          const getVisibleNodes = () => {
+            const proof = proofs[currentProof];
+            if (!proof) return { nodes: [], connections: [] };
+            
+            if (detailView) {
+              // In detail view, show all steps and supporting concepts
+              const steps = proof.steps;
+              const supportingConcepts = proof.supportingConcepts || [];
+              const connections = proof.connections || [];
+              
+              return {
+                nodes: [].concat(steps).concat(supportingConcepts),
+                connections: connections
+              };
+            } else {
+              // In overview mode, just show the theorem statement
+              return {
+                nodes: [proof.steps[0]],
+                connections: []
+              };
+            }
+          };
+
+          const getNodeTypeColor = (type) => {
+            switch(type) {
+              case "theorem": return "#3b82f6"; // blue
+              case "proof-step": return "#10b981"; // green
+              case "lemma": return "#8b5cf6"; // purple
+              case "assumption": return "#f59e0b"; // amber
+              case "technique": return "#ef4444"; // red
+              case "conclusion": return "#6366f1"; // indigo
+              default: return "#64748b"; // slate
+            }
+          };
+
+          const getNodeTypeShape = (type) => {
+            switch(type) {
+              case "theorem": return "M0,-24 L24,0 L0,24 L-24,0 Z"; // diamond
+              case "lemma": return "M-18,-18 L18,-18 L18,18 L-18,18 Z"; // square
+              case "conclusion": return "M0,-24 L24,0 L0,24 L-24,0 Z"; // diamond
+              default: return ""; // circle (default)
+            }
+          };
+
+          const { nodes, connections } = getVisibleNodes();
+
+          return (
+            <div className="flex flex-col h-screen">
+              <header className="bg-blue-700 text-white p-3 flex items-center justify-between">
+                <div>
+                  <h1 className="text-2xl font-bold">Algebraic Geometry Proof Visualizer</h1>
+                  <p className="text-sm">Explore detailed theorem proofs and logical connections</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button 
+                    onClick={toggleDetailView}
+                    className="px-3 py-1 bg-white text-blue-700 rounded hover:bg-blue-100"
+                  >
+                    {detailView ? "Simple View" : "Detailed View"}
+                  </button>
+                </div>
+              </header>
+              
+              <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+                {/* Top panel for theorem selection (on small screens) */}
+                <div className="md:hidden w-full bg-gray-100 p-3 overflow-y-auto">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-semibold">Theorem Library</h2>
+                    <button 
+                      onClick={toggleDetailView}
+                      className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    >
+                      {detailView ? "Simple View" : "Detailed View"}
+                    </button>
+                  </div>
+                  
+                  <div className="flex space-x-2 mt-3 overflow-x-auto pb-2">
+                    {Object.keys(proofs).map(function(proofId) {
+                      return (
+                        <button
+                          key={proofId}
+                          onClick={function() { changeProof(proofId); }}
+                          className={`whitespace-nowrap px-3 py-2 rounded ${
+                            currentProof === proofId 
+                              ? 'bg-blue-600 text-white' 
+                              : 'bg-white hover:bg-blue-100'
+                          }`}
+                        >
+                          {proofs[proofId].name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                
+                {/* Left sidebar for proof selection (on larger screens) */}
+                <div className="hidden md:block md:w-52 lg:w-64 bg-gray-100 p-4 overflow-y-auto">
+                  <h2 className="text-lg font-semibold mb-4">Theorem Library</h2>
+                  
+                  <div className="space-y-2">
+                    {Object.keys(proofs).map(function(proofId) {
+                      return (
+                        <button
+                          key={proofId}
+                          onClick={function() { changeProof(proofId); }}
+                          className={`block w-full text-left px-3 py-2 rounded ${
+                            currentProof === proofId 
+                              ? 'bg-blue-600 text-white' 
+                              : 'bg-white hover:bg-blue-100'
+                          }`}
+                        >
+                          {proofs[proofId].name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  
+                  {detailView && (
+                    <div className="mt-6">
+                      <h4 className="font-medium mb-2">Legend</h4>
+                      <div className="text-xs space-y-1 bg-white p-2 rounded">
+                        <div className="flex items-center">
+                          <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
+                          <span>Theorem</span>
+                        </div>
+                        <div className="flex items-center">
+                          <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                          <span>Proof Step</span>
+                        </div>
+                        <div className="flex items-center">
+                          <div className="w-3 h-3 rounded-full bg-purple-500 mr-2"></div>
+                          <span>Lemma</span>
+                        </div>
+                        <div className="flex items-center">
+                          <div className="w-3 h-3 rounded-full bg-amber-500 mr-2"></div>
+                          <span>Assumption</span>
+                        </div>
+                        <div className="flex items-center">
+                          <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                          <span>Technique</span>
+                        </div>
+                        <div className="flex items-center">
+                          <div className="w-3 h-3 rounded-full bg-indigo-500 mr-2"></div>
+                          <span>Conclusion</span>
+                        </div>
+                        <div className="flex items-center">
+                          <div className="w-3 h-3 rounded-full bg-slate-500 mr-2"></div>
+                          <span>Supporting Concept</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Main content area */}
+                <div className="flex flex-1 flex-col md:flex-row">
+                  {/* Left side: Proof details */}
+                  <div className="w-full md:w-1/2 lg:w-5/12 flex flex-col overflow-y-auto">
+                    {/* Theorem info */}
+                    <div className="bg-white p-4 border-b">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-xl font-bold text-blue-800">{proofs[currentProof].name}</h3>
+                        <button 
+                          onClick={toggleDetailView}
+                          className="hidden md:block px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                        >
+                          {detailView ? "Simple View" : "Detailed View"}
+                        </button>
+                      </div>
+                      <p className="mt-2 text-gray-700">{proofs[currentProof].description}</p>
+                    </div>
+                    
+                    {/* Proof navigation */}
+                    {detailView && (
+                      <div className="bg-blue-50 p-4 border-b">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="font-medium text-blue-800">Proof Steps</h4>
+                          <span className="text-sm bg-blue-100 px-2 py-1 rounded">{`Step ${currentStep} of ${proofs[currentProof].steps.filter(function(s) { return s.id.startsWith('step'); }).length - 1}`}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <button 
+                            onClick={function() { navigateSteps('prev'); }}
+                            disabled={currentStep === 0}
+                            className={`px-4 py-2 rounded ${
+                              currentStep === 0 
+                                ? 'bg-gray-200 text-gray-500' 
+                                : 'bg-blue-600 text-white hover:bg-blue-700'
+                            }`}
+                          >
+                            Previous
+                          </button>
+                          <button 
+                            onClick={function() { navigateSteps('next'); }}
+                            disabled={currentStep >= proofs[currentProof].steps.filter(function(s) { return s.id.startsWith('step'); }).length - 1}
+                            className={`px-4 py-2 rounded ${
+                              currentStep >= proofs[currentProof].steps.filter(function(s) { return s.id.startsWith('step'); }).length - 1
+                                ? 'bg-gray-200 text-gray-500' 
+                                : 'bg-blue-600 text-white hover:bg-blue-700'
+                            }`}
+                          >
+                            Next
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Selected node content - more prominent */}
+                    {selectedNode ? (
+                      <div className="flex-1 p-4 overflow-y-auto">
+                        <div className="bg-white p-5 rounded-lg shadow-md border border-gray-200">
+                          <div className="flex items-center mb-3">
+                            <div 
+                              className="w-5 h-5 rounded-full mr-3" 
+                              style={{ backgroundColor: getNodeTypeColor(selectedNode.type) }}
+                            ></div>
+                            <h3 className="text-xl font-bold">{selectedNode.label}</h3>
+                          </div>
+                          <div className="inline-block px-2 py-1 bg-gray-100 text-xs rounded mb-3">{selectedNode.type}</div>
+                          <p className="text-base leading-relaxed text-gray-800">{selectedNode.content}</p>
+                          
+                          {selectedNode.prerequisites && selectedNode.prerequisites.length > 0 && (
+                            <div className="mt-4 p-3 bg-blue-50 rounded-md">
+                              <h4 className="text-sm font-semibold mb-2">Prerequisites:</h4>
+                              <ul className="list-disc pl-5">
+                                {selectedNode.prerequisites.map(function(prereq) {
+                                  const prerequisiteNode = nodes.find(function(n) { return n.id === prereq; });
+                                  return (
+                                    <li key={prereq} className="text-sm py-1">{
+                                      prerequisiteNode ? prerequisiteNode.label : prereq
+                                    }</li>
+                                  );
+                                })}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex-1 p-4 overflow-y-auto">
+                        <div className="bg-white p-5 rounded-lg shadow-md border border-gray-200">
+                          <h4 className="font-medium text-lg mb-3">Overview</h4>
+                          <p className="text-base leading-relaxed text-gray-800">{proofs[currentProof].overview}</p>
+                          {!detailView && (
+                            <div className="mt-4 p-3 bg-yellow-50 rounded-md">
+                              <p className="text-sm">Click "Detailed View" to explore the complete proof with all logical connections.</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Right side: Visualization */}
+                  <div className="w-full md:w-1/2 lg:w-7/12 relative border-t md:border-t-0 md:border-l">
+                    {/* Add algebra-geometry dictionary toggle */}
+                    {currentProof === 'hilbert-nullstellensatz' && detailView && (
+                      <div className="absolute top-2 left-2 z-10 bg-white bg-opacity-90 p-2 rounded shadow-md">
+                        <div className="flex flex-col">
+                          <div className="flex items-center space-x-1 mb-1">
+                            <div className="w-2 h-2 rounded-full bg-blue-600"></div>
+                            <span className="text-xs font-medium">Algebra World</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <div className="w-2 h-2 rounded-full bg-green-600"></div>
+                            <span className="text-xs font-medium">Geometry World</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <svg 
+                      ref={svgRef}
+                      width={dimensions.width} 
+                      height={dimensions.height}
+                      className="w-full h-full"
+                    >
+                      {/* Background dividers for algebra-geometry worlds */}
+                      {currentProof === 'hilbert-nullstellensatz' && detailView && (
+                        <g>
+                          {/* Vertical divider */}
+                          <line
+                            x1={dimensions.width / 2}
+                            y1={0}
+                            x2={dimensions.width / 2}
+                            y2={dimensions.height}
+                            stroke="#ddd"
+                            strokeWidth="2"
+                            strokeDasharray="5,5"
+                          />
+                          
+                          {/* Algebra world label */}
+                          <rect
+                            x={dimensions.width / 4 - 60}
+                            y={50}
+                            width={120}
+                            height={30}
+                            fill="#1e40af"
+                            rx={5}
+                          />
+                          <text
+                            x={dimensions.width / 4}
+                            y={70}
+                            textAnchor="middle"
+                            fontSize="14"
+                            fontWeight="bold"
+                            fill="white"
+                          >
+                            Algebra World
+                          </text>
+                          
+                          {/* Geometry world label */}
+                          <rect
+                            x={dimensions.width * 3/4 - 60}
+                            y={50}
+                            width={120}
+                            height={30}
+                            fill="#047857"
+                            rx={5}
+                          />
+                          <text
+                            x={dimensions.width * 3/4}
+                            y={70}
+                            textAnchor="middle"
+                            fontSize="14"
+                            fontWeight="bold"
+                            fill="white"
+                          >
+                            Geometry World
+                          </text>
+                        </g>
+                      )}
+                      
+                      {/* Links (connections) */}
+                      {connections.map(function(link) {
+                        // Special styling for I and V functors that connect the worlds
+                        const isCorrespondenceMap = 
+                          (link.label === 'I' || link.label === 'V') && 
+                          currentProof === 'hilbert-nullstellensatz';
+                          
+                        return (
+                          <g key={`${link.source}-${link.target}`}>
+                            {/* The link path */}
+                            <path
+                              d={calculateArrowPath(link.source, link.target, link.label)}
+                              fill="none"
+                              stroke={
+                                isCorrespondenceMap ? '#7c3aed' :
+                                selectedNode && 
+                                (link.source === selectedNode.id || link.target === selectedNode.id)
+                                  ? '#ff6600'
+                                  : '#999'
+                              }
+                              strokeWidth={
+                                isCorrespondenceMap ? 3 :
+                                selectedNode && 
+                                (link.source === selectedNode.id || link.target === selectedNode.id)
+                                  ? 2
+                                  : 1
+                              }
+                              strokeDasharray={isCorrespondenceMap ? "0" : "0"}
+                            />
+                            
+                            {/* Arrow head */}
+                            <polygon
+                              points={calculateArrowHead(link.source, link.target)}
+                              fill={
+                                isCorrespondenceMap ? '#7c3aed' :
+                                selectedNode && 
+                                (link.source === selectedNode.id || link.target === selectedNode.id)
+                                  ? '#ff6600'
+                                  : '#999'
+                              }
+                            />
+                            
+                            {/* Link label */}
+                            {link.label && (
+                              (function() {
+                                const pos = getPathMidpoint(link.source, link.target);
+                                return (
+                                  <g>
+                                    {isCorrespondenceMap && (
+                                      <circle
+                                        cx={pos.x}
+                                        cy={pos.y}
+                                        r={12}
+                                        fill="white"
+                                        stroke="#7c3aed"
+                                        strokeWidth={2}
+                                      />
+                                    )}
+                                    <text
+                                      x={pos.x}
+                                      y={pos.y}
+                                      textAnchor="middle"
+                                      dominantBaseline="middle"
+                                      fontSize={isCorrespondenceMap ? "14" : "10"}
+                                      fontWeight={isCorrespondenceMap ? "bold" : "normal"}
+                                      fill={isCorrespondenceMap ? "#7c3aed" : "#666"}
+                                      className="select-none"
+                                    >
+                                      {link.label}
+                                    </text>
+                                  </g>
+                                );
+                              })()
+                            )}
+                          </g>
+                        );
+                      })}
+                      
+                      {/* Nodes */}
+                      {nodes.map(function(node) {
+                        // For algebra-geometry dictionary, adjust node positions
+                        let position = nodePositions[node.id] || { x: 400, y: 300 };
+                        
+                        // Determine if node belongs to algebra or geometry world
+                        const isAlgebraNode = 
+                          currentProof === 'hilbert-nullstellensatz' && 
+                          (node.id === 'radical-ideal' || node.id === 'prime-ideal' || 
+                           node.id === 'maximal-ideal' || 
+                           node.id === 'radical-def' || node.id === 'step1' ||
+                           node.id === 'step4');
+                        
+                        const isGeometryNode = 
+                          currentProof === 'hilbert-nullstellensatz' && 
+                          (node.id === 'variety' || node.id === 'irr-variety' || 
+                           node.id === 'point' || node.id === 'vanishing-at-points' ||
+                           node.id === 'step2');
+                        
+                        // When in dictionary view, adjust X position to appropriate side
+                        if (detailView) {
+                          if (isAlgebraNode) {
+                            position.x = Math.min(position.x, dimensions.width / 2 - 60);
+                          } else if (isGeometryNode) {
+                            position.x = Math.max(position.x, dimensions.width / 2 + 60);
+                          }
+                        }
+                        
+                        const nodeShape = getNodeTypeShape(node.type);
+                        const isHighlighted = selectedNode && selectedNode.id === node.id;
+                        const isCurrentStep = node.id === `step${currentStep}`;
+                        
+                        // Determine color adjustments for algebra/geometry nodes
+                        let fillColor = getNodeTypeColor(node.type);
+                        if (isAlgebraNode) {
+                          // Shift to blue tones for algebra
+                          fillColor = node.type === "theorem" ? "#2563eb" : 
+                                     node.type === "proof-step" ? "#0d9488" : 
+                                     node.type === "conclusion" ? "#4f46e5" : "#1d4ed8";
+                        } else if (isGeometryNode) {
+                          // Shift to green tones for geometry
+                          fillColor = node.type === "theorem" ? "#059669" : 
+                                     node.type === "proof-step" ? "#047857" : 
+                                     node.type === "conclusion" ? "#047857" : "#15803d";
+                        }
+                        
+                        return (
+                          <g 
+                            key={node.id}
+                            transform={`translate(${position.x}, ${position.y})`}
+                            onClick={function() { handleNodeClick(node); }}
+                            onMouseDown={function(e) { handleMouseDown(node.id, e); }}
+                            style={{ cursor: 'pointer' }}
+                          >
+                            {/* Node shape based on type */}
+                            {nodeShape ? (
+                              <path
+                                d={nodeShape}
+                                fill={fillColor}
+                                stroke={isHighlighted || isCurrentStep ? '#ff6600' : 'none'}
+                                strokeWidth="2"
+                              />
+                            ) : (
+                              <circle
+                                r="20"
+                                fill={fillColor}
+                                stroke={isHighlighted || isCurrentStep ? '#ff6600' : 'none'}
+                                strokeWidth="2"
+                              />
+                            )}
+                            
+                            {/* Node label background */}
+                            <rect
+                              x="-60"
+                              y="-45"
+                              width="120"
+                              height="20"
+                              rx="5"
+                              fill="rgba(255, 255, 255, 0.9)"
+                            />
+                            
+                            {/* Node label text */}
+                            <text
+                              textAnchor="middle"
+                              y="-30"
+                              fontSize="11"
+                              fontWeight="600"
+                              fill="#333"
+                              className="select-none"
+                            >
+                              {node.label}
+                            </text>
+                          </g>
+                        );
+                      })}
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              
+              <footer className="bg-gray-200 p-2 text-center text-sm text-gray-600">
+                <p>{detailView ? "Click on a node to see details. Drag nodes to rearrange. Use the navigation buttons to follow the proof step-by-step." : "Click 'Detailed View' to explore the complete proof with all logical connections."}</p>
+              </footer>
+            </div>
+          );
+        };
+
+        // Render the component to the DOM
+        const rootElement = document.getElementById('root');
+        const root = ReactDOM.createRoot(rootElement);
+        root.render(<ProofVisualizer />);
+    </script>
+</body>
+</html>
