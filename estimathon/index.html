@@ -256,7 +256,7 @@
         <!-- Participant Section -->
         <div id="participantSection">
             <div class="instructions">
-                <strong>Instructions:</strong> You have 30 total guesses across all 15 questions. 
+                <strong>Instructions:</strong> Select your team (0-9) and enter your team code to begin. You have 30 total guesses across all 15 questions. 
                 For each question, provide a range [min, max] that you think contains the answer.
                 Each submission or update uses one of your 30 guesses. Scores are automatically sent to the spreadsheet.
                 <br><br>
@@ -281,7 +281,9 @@
                             <option value="Team 8">Team 8</option>
                             <option value="Team 9">Team 9</option>
                         </select>
-                        <button onclick="saveTeamName()">Save</button>
+                        <input type="password" id="teamCode" placeholder="Team code" style="max-width: 150px;">
+                        <button onclick="saveTeamName()">Login</button>
+                        <button onclick="logout()" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); display: none;" id="logoutBtn">Logout</button>
                     </div>
                 </div>
             </div>
@@ -325,6 +327,18 @@
                 </div>
                 
                 <div id="adminControls" class="hidden">
+                    <h3 style="margin: 20px 0;">Team Codes</h3>
+                    <pre style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; font-size: 0.9em;">Team 0: alpha0
+Team 1: beta1
+Team 2: gamma2
+Team 3: delta3
+Team 4: epsilon4
+Team 5: zeta5
+Team 6: eta6
+Team 7: theta7
+Team 8: iota8
+Team 9: kappa9</pre>
+                    
                     <h3 style="margin: 20px 0;">Add/Edit Questions</h3>
                     
                     <div class="input-group">
@@ -346,17 +360,47 @@
         const ADMIN_PASSWORD = 'estimathon123';
         const MAX_TOTAL_GUESSES = 30;
         
+        // Team codes - change these to whatever you want
+        const TEAM_CODES = {
+            'Team 0': 'alpha0',
+            'Team 1': 'beta1',
+            'Team 2': 'gamma2',
+            'Team 3': 'delta3',
+            'Team 4': 'epsilon4',
+            'Team 5': 'zeta5',
+            'Team 6': 'eta6',
+            'Team 7': 'theta7',
+            'Team 8': 'iota8',
+            'Team 9': 'kappa9'
+        };
+        
+        // Admin can update team codes here or in the code above
+        const teamCodesInfo = `
+Team Codes (change in code):
+Team 0: alpha0
+Team 1: beta1
+Team 2: gamma2
+Team 3: delta3
+Team 4: epsilon4
+Team 5: zeta5
+Team 6: eta6
+Team 7: theta7
+Team 8: iota8
+Team 9: kappa9
+        `;
+        
         // Google Sheets configuration
         const SHEET_CONFIG = {
             spreadsheetId: '1ST39xXXjrw-VXILxKP9Bjthn-cJKKna0tGBTbOqdcPg',
             apiKey: 'AIzaSyB0l94qUpcnbVRnWOJgpG0HWtd8TsgfjLI',
             range: 'Sheet1!A:Q', // adjust sheet name if needed
-            updateWebAppUrl: 'https://script.google.com/macros/s/AKfycbzZWdLhAka6FISs2TFM8gmegrYdJbWq4yrdiw-iWvXQ-1cvlosTaV6BQ6fVckeVZbIQIw/exec' // from Apps Script deployment (NOT your GitHub Pages URL)
+            updateWebAppUrl: 'YOUR_WEB_APP_URL_HERE' // from Apps Script deployment (NOT your GitHub Pages URL)
         };
         
         // tracking guesses per question
         let submittedGuesses = {};
         let totalGuessesUsed = 0;
+        let incorrectCounts = {}; // tracks number of incorrect guesses per question
         
         // test questions that show the answer
         let questions = JSON.parse(localStorage.getItem('estimathonQuestions')) || [
@@ -469,9 +513,9 @@
         }
 
         function submitQuestion(questionId) {
-            // check if team is selected
-            if (!getTeamName()) {
-                alert('Please select your team first!');
+            // check if team is selected and logged in
+            if (!getTeamName() || !isTeamLoggedIn()) {
+                alert('Please select your team and enter the code first!');
                 return;
             }
             
@@ -510,6 +554,17 @@
             
             // check if correct
             const isCorrect = min <= question.answer && max >= question.answer;
+            
+            // track incorrect guesses
+            if (!isCorrect) {
+                if (!incorrectCounts[questionId]) {
+                    incorrectCounts[questionId] = 0;
+                }
+                incorrectCounts[questionId]++;
+            } else {
+                // if now correct, reset incorrect count
+                incorrectCounts[questionId] = 0;
+            }
             
             // save the guess
             submittedGuesses[questionId] = {
@@ -603,6 +658,7 @@
             if (submittedGuesses[id]) {
                 totalGuessesUsed--;
                 delete submittedGuesses[id];
+                delete incorrectCounts[id];
                 updateGuessTracker();
                 calculateTotalScore();
             }
@@ -623,18 +679,27 @@
         // Google Sheets Integration Functions
         async function submitToGoogleSheets() {
             const teamName = getTeamName();
-            if (!teamName) {
-                // silently fail if no team selected yet
+            if (!teamName || !isTeamLoggedIn()) {
+                // silently fail if no team selected or not logged in
                 return;
             }
             
-            // Calculate ratios for each correct answer
-            const ratios = new Array(15).fill(''); // empty array for 15 questions
+            // Calculate values for each question
+            const values = new Array(15).fill(''); // empty array for 15 questions
             
             questions.forEach((q, index) => {
-                if (index < 15 && submittedGuesses[q.id] && submittedGuesses[q.id].isCorrect) {
-                    const guess = submittedGuesses[q.id];
-                    ratios[index] = Math.floor(guess.max / guess.min);
+                if (index < 15) {
+                    if (submittedGuesses[q.id]) {
+                        if (submittedGuesses[q.id].isCorrect) {
+                            // correct answer: send the ratio
+                            const guess = submittedGuesses[q.id];
+                            values[index] = Math.floor(guess.max / guess.min);
+                        } else {
+                            // incorrect answer: send x's based on number of incorrect attempts
+                            const incorrectCount = incorrectCounts[q.id] || 1;
+                            values[index] = 'x'.repeat(incorrectCount);
+                        }
+                    }
                 }
             });
             
@@ -648,7 +713,7 @@
                     },
                     body: JSON.stringify({
                         team: teamName,
-                        ratios: ratios
+                        ratios: values
                     })
                 });
                 
@@ -664,14 +729,78 @@
             return document.getElementById('teamName').value;
         }
 
+        function isTeamLoggedIn() {
+            const teamName = getTeamName();
+            const savedTeam = localStorage.getItem('teamName');
+            const savedCode = localStorage.getItem('teamCode');
+            
+            return teamName && savedTeam === teamName && savedCode === TEAM_CODES[teamName];
+        }
+
         function saveTeamName() {
             const teamName = document.getElementById('teamName').value;
-            if (teamName) {
-                localStorage.setItem('teamName', teamName);
-                alert('Team selected!');
-            } else {
+            const teamCode = document.getElementById('teamCode').value;
+            
+            if (!teamName) {
                 alert('Please select a team!');
+                return;
             }
+            
+            if (TEAM_CODES[teamName] !== teamCode) {
+                alert('Incorrect team code!');
+                return;
+            }
+            
+            // check if switching teams
+            const currentTeamData = localStorage.getItem('currentTeamData');
+            if (currentTeamData !== teamName) {
+                // switching teams - clear all previous data
+                submittedGuesses = {};
+                incorrectCounts = {};
+                totalGuessesUsed = 0;
+            }
+            
+            localStorage.setItem('teamName', teamName);
+            localStorage.setItem('teamCode', teamCode);
+            localStorage.setItem('currentTeamData', teamName);
+            alert('Logged in successfully!');
+            
+            // show logout button, hide login elements
+            document.getElementById('teamName').disabled = true;
+            document.getElementById('teamCode').style.display = 'none';
+            document.querySelector('button[onclick="saveTeamName()"]').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'inline-block';
+            
+            // reset guesses for new login
+            submittedGuesses = {};
+            incorrectCounts = {};
+            totalGuessesUsed = 0;
+            updateGuessTracker();
+            calculateTotalScore();
+            renderQuestions();
+        }
+        
+        function logout() {
+            localStorage.removeItem('teamName');
+            localStorage.removeItem('teamCode');
+            
+            // reset UI
+            document.getElementById('teamName').value = '';
+            document.getElementById('teamName').disabled = false;
+            document.getElementById('teamCode').value = '';
+            document.getElementById('teamCode').style.display = 'inline-block';
+            document.querySelector('button[onclick="saveTeamName()"]').style.display = 'inline-block';
+            document.getElementById('logoutBtn').style.display = 'none';
+            
+            // clear all data
+            submittedGuesses = {};
+            incorrectCounts = {};
+            totalGuessesUsed = 0;
+            updateGuessTracker();
+            calculateTotalScore();
+            renderQuestions();
+            
+            alert('Logged out successfully!');
         }
 
         // initialize
@@ -679,10 +808,22 @@
         updateGuessTracker();
         calculateTotalScore();
         
-        // Load team name if saved
+        // Load team name if saved and still valid
         const savedTeamName = localStorage.getItem('teamName');
-        if (savedTeamName) {
+        const savedCode = localStorage.getItem('teamCode');
+        if (savedTeamName && savedCode && TEAM_CODES[savedTeamName] === savedCode) {
             document.getElementById('teamName').value = savedTeamName;
+            document.getElementById('teamCode').value = savedCode;
+            
+            // show logged in state
+            document.getElementById('teamName').disabled = true;
+            document.getElementById('teamCode').style.display = 'none';
+            document.querySelector('button[onclick="saveTeamName()"]').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'inline-block';
+        } else {
+            // clear invalid login
+            localStorage.removeItem('teamName');
+            localStorage.removeItem('teamCode');
         }
     </script>
 </body>
