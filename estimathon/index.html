@@ -48,6 +48,32 @@
             color: #e74c3c;
         }
 
+        .total-score {
+            text-align: center;
+            font-size: 2em;
+            color: #f39c12;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: rgba(243, 156, 18, 0.1);
+            border-radius: 10px;
+            border: 2px solid #f39c12;
+        }
+        
+        .score-summary {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #bdc3c7;
+        }
+
+        .score-formula {
+            font-size: 0.7em;
+            color: #95a5a6;
+            margin-top: 10px;
+            font-family: monospace;
+        }
+
         .card {
             background: rgba(52, 52, 72, 0.6);
             backdrop-filter: blur(10px);
@@ -68,7 +94,6 @@
         }
 
         .question.submitted {
-            opacity: 0.7;
             border-left-color: #3498db;
         }
 
@@ -133,6 +158,10 @@
             background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
         }
 
+        .submit-btn.update {
+            background: linear-gradient(135deg, #f39c12 0%, #d68910 100%);
+        }
+
         .score-display {
             font-size: 1.1em;
             margin-top: 10px;
@@ -179,25 +208,6 @@
             display: none;
         }
 
-        .total-score {
-            text-align: center;
-            font-size: 2em;
-            color: #f39c12;
-            margin-bottom: 20px;
-            padding: 20px;
-            background: rgba(243, 156, 18, 0.1);
-            border-radius: 10px;
-            border: 2px solid #f39c12;
-        }
-        
-        .score-summary {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 10px;
-            font-size: 0.9em;
-            color: #bdc3c7;
-        }
-
         .error {
             color: #e74c3c;
             font-size: 0.9em;
@@ -231,6 +241,69 @@
             font-size: 0.95em;
             line-height: 1.6;
         }
+
+        .note-text {
+            font-size: 0.85em;
+            color: #95a5a6;
+            font-style: italic;
+        }
+
+        /* Leaderboard styles */
+        .leaderboard-container {
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .leaderboard-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .leaderboard-entry:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .leaderboard-entry.current-team {
+            background: rgba(243, 156, 18, 0.2);
+            border: 2px solid #f39c12;
+        }
+        
+        .rank {
+            font-weight: bold;
+            color: #f39c12;
+            min-width: 40px;
+        }
+        
+        .team-name {
+            flex: 1;
+            font-weight: 500;
+        }
+        
+        .team-stats {
+            color: #95a5a6;
+            font-size: 0.9em;
+            margin-right: 20px;
+        }
+        
+        .team-score {
+            font-weight: bold;
+            color: #e74c3c;
+            min-width: 100px;
+            text-align: right;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #95a5a6;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
@@ -240,10 +313,22 @@
         <!-- Participant Section -->
         <div id="participantSection">
             <div class="instructions">
-                <strong>Instructions:</strong> You have a total of 30 guesses to use across all questions. 
-                Each guess counts as the range between your min and max values. 
-                Submit each question individually when you're ready. 
-                Tighter ranges score more points if correct!
+                <strong>Instructions:</strong> You have 30 total guesses across all 15 questions. 
+                For each question, provide a range [min, max] that you think contains the answer.
+                You can update your answers as many times as you want without using additional guesses.
+                <br><br>
+                <strong>Scoring:</strong> Lower scores are better! 
+                Score = (10 + sum of ⌊max/min⌋ for correct guesses) × 2^(# unanswered questions)
+                <br>
+                <span class="note-text">Each question you don't answer correctly (or skip) doubles your score! Tight ranges on correct answers help keep the base score low.</span>
+                
+                <div style="margin-top: 15px;">
+                    <label for="teamName" style="display: block; margin-bottom: 5px;">Team Name:</label>
+                    <div class="input-group">
+                        <input type="text" id="teamName" placeholder="Enter your team name" style="flex: 1;">
+                        <button onclick="saveTeamName()">Save</button>
+                    </div>
+                </div>
             </div>
 
             <div class="guess-tracker" id="guessTracker">
@@ -251,11 +336,26 @@
             </div>
 
             <div id="totalScore" class="total-score">
-                🏆 Total Score: <span id="scoreValue">0</span> points
+                🎯 Score: <span id="scoreValue">327680</span>
                 <div class="score-summary">
-                    <span>Questions answered: <span id="questionsAnswered">0</span></span>
+                    <span>Correct: <span id="correctGuesses">0</span></span>
+                    <span>Unanswered: <span id="mistakes">15</span></span>
                     <span>Guesses used: <span id="guessesUsed">0</span></span>
                 </div>
+                <div class="score-formula">
+                    (10 + <span id="rangeSum">0</span>) × 2^<span id="mistakeCount">15</span> = <span id="finalScore">327680</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Live Leaderboard</h2>
+                <div id="leaderboard" class="leaderboard-container">
+                    <div class="loading">Loading leaderboard...</div>
+                </div>
+                <button onclick="submitToGoogleSheets()" 
+                        style="width: 100%; margin-top: 20px; background: linear-gradient(135deg, #27ae60 0%, #229954 100%);">
+                    Submit Scores to Leaderboard
+                </button>
             </div>
 
             <div class="card">
@@ -286,7 +386,6 @@
                     <div class="input-group">
                         <input type="text" id="newQuestion" placeholder="Question text">
                         <input type="number" id="correctAnswer" placeholder="Correct answer">
-                        <input type="number" id="maxGuess" placeholder="Max allowed guess">
                         <button onclick="addQuestion()">Add Question</button>
                     </div>
                     
@@ -303,15 +402,35 @@
         const ADMIN_PASSWORD = 'estimathon123';
         const MAX_TOTAL_GUESSES = 30;
         
+        // Google Sheets configuration
+        const SHEET_CONFIG = {
+            spreadsheetId: 'YOUR_SPREADSHEET_ID_HERE', // get from sheet URL
+            apiKey: 'YOUR_API_KEY_HERE', // from Google Cloud Console
+            range: 'Sheet1!A:Q', // adjust to your sheet name
+            updateWebAppUrl: 'YOUR_WEB_APP_URL_HERE' // from Apps Script deployment
+        };
+        
         // tracking guesses per question
         let submittedGuesses = {};
         let totalGuessesUsed = 0;
         
         // test questions that show the answer
         let questions = JSON.parse(localStorage.getItem('estimathonQuestions')) || [
-            { id: 1, text: "Test Question 1: The answer is 42", answer: 42, maxGuess: 100 },
-            { id: 2, text: "Test Question 2: The answer is 1337", answer: 1337, maxGuess: 5000 },
-            { id: 3, text: "Test Question 3: The answer is 256", answer: 256, maxGuess: 1000 }
+            { id: 1, text: "Test Question 1: The answer is 42", answer: 42 },
+            { id: 2, text: "Test Question 2: The answer is 1337", answer: 1337 },
+            { id: 3, text: "Test Question 3: The answer is 256", answer: 256 },
+            { id: 4, text: "Test Question 4: The answer is 999", answer: 999 },
+            { id: 5, text: "Test Question 5: The answer is 12345", answer: 12345 },
+            { id: 6, text: "Test Question 6: The answer is 77", answer: 77 },
+            { id: 7, text: "Test Question 7: The answer is 500", answer: 500 },
+            { id: 8, text: "Test Question 8: The answer is 2048", answer: 2048 },
+            { id: 9, text: "Test Question 9: The answer is 365", answer: 365 },
+            { id: 10, text: "Test Question 10: The answer is 60", answer: 60 },
+            { id: 11, text: "Test Question 11: The answer is 1000000", answer: 1000000 },
+            { id: 12, text: "Test Question 12: The answer is 314", answer: 314 },
+            { id: 13, text: "Test Question 13: The answer is 88", answer: 88 },
+            { id: 14, text: "Test Question 14: The answer is 1776", answer: 1776 },
+            { id: 15, text: "Test Question 15: The answer is 404", answer: 404 }
         ];
 
         function saveQuestions() {
@@ -330,18 +449,32 @@
             }
         }
 
-        function updateTotalScore() {
-            let totalScore = 0;
-            let questionsAnswered = 0;
+        function calculateTotalScore() {
+            let rangeSum = 0;
+            let correctCount = 0;
             
-            Object.values(submittedGuesses).forEach(guess => {
-                totalScore += guess.score;
-                questionsAnswered++;
+            Object.entries(submittedGuesses).forEach(([questionId, guess]) => {
+                if (guess.isCorrect) {
+                    // add floor(max/min) to sum
+                    rangeSum += Math.floor(guess.max / guess.min);
+                    correctCount++;
+                }
             });
             
+            // mistakes = total questions - correct answers
+            const totalQuestions = questions.length;
+            const mistakes = totalQuestions - correctCount;
+            
+            const totalScore = (10 + rangeSum) * Math.pow(2, mistakes);
+            
+            // update all display elements
             document.getElementById('scoreValue').textContent = totalScore;
-            document.getElementById('questionsAnswered').textContent = questionsAnswered;
+            document.getElementById('correctGuesses').textContent = correctCount;
+            document.getElementById('mistakes').textContent = mistakes;
             document.getElementById('guessesUsed').textContent = totalGuessesUsed;
+            document.getElementById('rangeSum').textContent = rangeSum;
+            document.getElementById('mistakeCount').textContent = mistakes;
+            document.getElementById('finalScore').textContent = totalScore;
         }
 
         function renderQuestions() {
@@ -357,23 +490,20 @@
                     <div class="input-group">
                         <div style="flex: 1;">
                             <label>Min guess:</label>
-                            <input type="number" id="min-${q.id}" placeholder="Minimum" min="0" max="${q.maxGuess}" 
-                                   ${isSubmitted ? 'disabled' : ''} 
+                            <input type="number" id="min-${q.id}" placeholder="Minimum" min="1" 
                                    value="${isSubmitted ? submittedGuesses[q.id].min : ''}">
                         </div>
                         <div style="flex: 1;">
                             <label>Max guess:</label>
-                            <input type="number" id="max-${q.id}" placeholder="Maximum" min="0" max="${q.maxGuess}" 
-                                   ${isSubmitted ? 'disabled' : ''} 
+                            <input type="number" id="max-${q.id}" placeholder="Maximum" min="1" 
                                    value="${isSubmitted ? submittedGuesses[q.id].max : ''}">
                         </div>
-                        <button class="submit-btn" onclick="submitQuestion(${q.id})" 
-                                ${isSubmitted ? 'disabled' : ''}>
-                            ${isSubmitted ? 'Submitted' : 'Submit'}
+                        <button class="submit-btn ${isSubmitted ? 'update' : ''}" onclick="submitQuestion(${q.id})">
+                            ${isSubmitted ? 'Update' : 'Submit'}
                         </button>
                     </div>
                     <div class="error" id="error-${q.id}"></div>
-                    <div class="score-display ${isSubmitted ? (submittedGuesses[q.id].score > 0 ? 'correct' : 'incorrect') : 'hidden'}" 
+                    <div class="score-display ${isSubmitted ? (submittedGuesses[q.id].isCorrect ? 'correct' : 'incorrect') : 'hidden'}" 
                          id="score-${q.id}">
                         ${isSubmitted ? getScoreMessage(q.id) : ''}
                     </div>
@@ -386,20 +516,15 @@
             const guess = submittedGuesses[questionId];
             const question = questions.find(q => q.id === questionId);
             
-            if (guess.score > 0) {
-                return `✓ Correct! Score: ${guess.score} points (Range: ${guess.max - guess.min})`;
+            if (guess.isCorrect) {
+                const contribution = Math.floor(guess.max / guess.min);
+                return `✓ Correct! Range ratio: ⌊${guess.max}/${guess.min}⌋ = ${contribution}`;
             } else {
-                return `✗ Incorrect. The answer was ${question.answer}`;
+                return `✗ Incorrect. Try again!`;
             }
         }
 
         function submitQuestion(questionId) {
-            // check if we have guesses left
-            if (totalGuessesUsed >= MAX_TOTAL_GUESSES) {
-                alert('You have used all 30 guesses!');
-                return;
-            }
-            
             const question = questions.find(q => q.id === questionId);
             const minInput = document.getElementById(`min-${questionId}`);
             const maxInput = document.getElementById(`max-${questionId}`);
@@ -412,8 +537,13 @@
             errorDiv.textContent = '';
             
             // validate
-            if (!min && min !== 0 || !max && max !== 0) {
+            if (!min || !max) {
                 errorDiv.textContent = 'Please enter both min and max values';
+                return;
+            }
+            
+            if (min < 1) {
+                errorDiv.textContent = 'Min must be at least 1';
                 return;
             }
             
@@ -422,34 +552,32 @@
                 return;
             }
             
-            if (max > question.maxGuess) {
-                errorDiv.textContent = `Max guess cannot exceed ${question.maxGuess}`;
+            // check if this is a new submission
+            const isNewSubmission = submittedGuesses[questionId] === undefined;
+            
+            // check if we have guesses left (only for new submissions)
+            if (isNewSubmission && totalGuessesUsed >= MAX_TOTAL_GUESSES) {
+                alert('You have used all 30 guesses!');
                 return;
             }
             
-            // calculate score
-            let score = 0;
-            if (min <= question.answer && max >= question.answer) {
-                // base score
-                score = 100;
-                
-                // bonus for tight range - more aggressive bonus
-                const range = max - min;
-                const rangeRatio = range / question.maxGuess;
-                const rangeBonus = Math.round(100 * (1 - rangeRatio));
-                score += Math.max(0, rangeBonus);
-            }
+            // check if correct
+            const isCorrect = min <= question.answer && max >= question.answer;
             
             // save the guess
             submittedGuesses[questionId] = {
                 min: min,
                 max: max,
-                score: score
+                isCorrect: isCorrect
             };
             
-            totalGuessesUsed++;
+            // only increment for new submissions
+            if (isNewSubmission) {
+                totalGuessesUsed++;
+            }
+            
             updateGuessTracker();
-            updateTotalScore();
+            calculateTotalScore();
             
             // re-render to show submitted state
             renderQuestions();
@@ -487,7 +615,7 @@
                 div.className = 'question';
                 div.innerHTML = `
                     <p><strong>Q${q.id}:</strong> ${q.text}</p>
-                    <p>Answer: ${q.answer} | Max guess: ${q.maxGuess}</p>
+                    <p>Answer: ${q.answer}</p>
                     <button onclick="deleteQuestion(${q.id})" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); margin-top: 10px;">
                         Delete
                     </button>
@@ -499,9 +627,8 @@
         function addQuestion() {
             const questionText = document.getElementById('newQuestion').value;
             const answer = parseFloat(document.getElementById('correctAnswer').value);
-            const maxGuess = parseFloat(document.getElementById('maxGuess').value);
             
-            if (!questionText || (!answer && answer !== 0) || !maxGuess) {
+            if (!questionText || (!answer && answer !== 0)) {
                 alert('Please fill in all fields');
                 return;
             }
@@ -510,8 +637,7 @@
             questions.push({
                 id: newId,
                 text: questionText,
-                answer: answer,
-                maxGuess: maxGuess
+                answer: answer
             });
             
             saveQuestions();
@@ -521,7 +647,6 @@
             // clear inputs
             document.getElementById('newQuestion').value = '';
             document.getElementById('correctAnswer').value = '';
-            document.getElementById('maxGuess').value = '';
         }
 
         function deleteQuestion(id) {
@@ -531,7 +656,7 @@
                 totalGuessesUsed--;
                 delete submittedGuesses[id];
                 updateGuessTracker();
-                updateTotalScore();
+                calculateTotalScore();
             }
             saveQuestions();
             renderAdminQuestions();
@@ -547,10 +672,158 @@
             }
         }
 
+        // Google Sheets Integration Functions
+        function loadGoogleSheetsAPI() {
+            const script = document.createElement('script');
+            script.src = 'https://apis.google.com/js/api.js';
+            script.onload = initGoogleSheets;
+            document.head.appendChild(script);
+        }
+
+        function initGoogleSheets() {
+            gapi.load('client', async () => {
+                await gapi.client.init({
+                    apiKey: SHEET_CONFIG.apiKey,
+                    discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
+                });
+                
+                // Start polling for leaderboard updates
+                updateLeaderboard();
+                setInterval(updateLeaderboard, 5000); // update every 5 seconds
+            });
+        }
+
+        async function updateLeaderboard() {
+            try {
+                const response = await gapi.client.sheets.spreadsheets.values.get({
+                    spreadsheetId: SHEET_CONFIG.spreadsheetId,
+                    range: SHEET_CONFIG.range,
+                });
+                
+                const rows = response.result.values || [];
+                displayLeaderboard(rows);
+            } catch (error) {
+                console.error('Error fetching leaderboard:', error);
+            }
+        }
+
+        function displayLeaderboard(rows) {
+            // Skip blank row and header row (rows 0 and 1)
+            const teams = rows.slice(2).map(row => {
+                const teamName = row[0] || 'Unknown Team';
+                // Count non-empty cells from B to P (indices 1-15)
+                const correctCount = row.slice(1, 16).filter(cell => cell && cell !== '').length;
+                const mistakes = 15 - correctCount;
+                
+                // Calculate sum of ratios
+                let ratioSum = 0;
+                for (let i = 1; i <= 15; i++) {
+                    const value = parseFloat(row[i]);
+                    if (!isNaN(value)) {
+                        ratioSum += value;
+                    }
+                }
+                
+                const totalScore = (10 + ratioSum) * Math.pow(2, mistakes);
+                
+                return {
+                    name: teamName,
+                    score: totalScore,
+                    correct: correctCount,
+                    mistakes: mistakes
+                };
+            }).sort((a, b) => a.score - b.score); // sort by score (lower is better)
+            
+            // Update leaderboard display
+            const leaderboardDiv = document.getElementById('leaderboard');
+            if (leaderboardDiv) {
+                leaderboardDiv.innerHTML = teams.map((team, index) => `
+                    <div class="leaderboard-entry ${team.name === getTeamName() ? 'current-team' : ''}">
+                        <span class="rank">#${index + 1}</span>
+                        <span class="team-name">${team.name}</span>
+                        <span class="team-stats">${team.correct}/15 correct</span>
+                        <span class="team-score">${Math.round(team.score).toLocaleString()}</span>
+                    </div>
+                `).join('');
+                
+                // show message if max teams reached
+                if (teams.length >= 10 && !teams.find(t => t.name === getTeamName())) {
+                    leaderboardDiv.innerHTML += `
+                        <div style="text-align: center; margin-top: 20px; color: #e74c3c;">
+                            ⚠️ Maximum 10 teams reached
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        async function submitToGoogleSheets() {
+            const teamName = getTeamName();
+            if (!teamName) {
+                alert('Please enter your team name first!');
+                return;
+            }
+            
+            // Calculate ratios for each correct answer
+            const ratios = new Array(15).fill(''); // empty array for 15 questions
+            
+            questions.forEach((q, index) => {
+                if (index < 15 && submittedGuesses[q.id] && submittedGuesses[q.id].isCorrect) {
+                    const guess = submittedGuesses[q.id];
+                    ratios[index] = Math.floor(guess.max / guess.min);
+                }
+            });
+            
+            // Send to Google Apps Script Web App
+            try {
+                const response = await fetch(SHEET_CONFIG.updateWebAppUrl, {
+                    method: 'POST',
+                    mode: 'no-cors', // important for CORS
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        team: teamName,
+                        ratios: ratios
+                    })
+                });
+                
+                // note: with no-cors mode, we can't read the response
+                // so we just assume success and update
+                alert('Scores submitted successfully!');
+                updateLeaderboard(); // refresh immediately
+            } catch (error) {
+                console.error('Error submitting scores:', error);
+                alert('Error submitting scores. Please try again.');
+            }
+        }
+
+        function getTeamName() {
+            return localStorage.getItem('teamName') || '';
+        }
+
+        function saveTeamName() {
+            const teamName = document.getElementById('teamName').value;
+            if (teamName) {
+                localStorage.setItem('teamName', teamName);
+                alert('Team name saved!');
+                document.getElementById('teamName').value = teamName;
+            }
+        }
+
         // initialize
         renderQuestions();
         updateGuessTracker();
-        updateTotalScore();
+        calculateTotalScore();
+        
+        // Load team name if saved
+        const savedTeamName = getTeamName();
+        if (savedTeamName) {
+            document.getElementById('teamName').value = savedTeamName;
+        }
+        
+        // Load Google Sheets API
+        loadGoogleSheetsAPI();
     </script>
 </body>
 </html>
