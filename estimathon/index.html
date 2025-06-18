@@ -566,6 +566,10 @@ Team 9: kappa9
                 incorrectCounts[questionId] = 0;
             }
             
+            // check if the guess is the same as the previous one
+            const previousGuess = submittedGuesses[questionId];
+            const isSameGuess = previousGuess && previousGuess.min === min && previousGuess.max === max;
+            
             // save the guess
             submittedGuesses[questionId] = {
                 min: min,
@@ -573,8 +577,10 @@ Team 9: kappa9
                 isCorrect: isCorrect
             };
             
-            // always increment (updates cost a guess now)
-            totalGuessesUsed++;
+            // increment totalGuessesUsed only if the guess is different
+            if (!isSameGuess) {
+                totalGuessesUsed++;
+            }
             
             updateGuessTracker();
             calculateTotalScore();
