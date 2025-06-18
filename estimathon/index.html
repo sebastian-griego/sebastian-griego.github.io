@@ -315,7 +315,7 @@
             <div class="instructions">
                 <strong>Instructions:</strong> You have 30 total guesses across all 15 questions. 
                 For each question, provide a range [min, max] that you think contains the answer.
-                You can update your answers as many times as you want without using additional guesses.
+                Each submission or update uses one of your 30 guesses.
                 <br><br>
                 <strong>Scoring:</strong> Lower scores are better! 
                 Score = (10 + sum of ⌊max/min⌋ for correct guesses) × 2^(# unanswered questions)
@@ -323,9 +323,21 @@
                 <span class="note-text">Each question you don't answer correctly (or skip) doubles your score! Tight ranges on correct answers help keep the base score low.</span>
                 
                 <div style="margin-top: 15px;">
-                    <label for="teamName" style="display: block; margin-bottom: 5px;">Team Name:</label>
+                    <label for="teamName" style="display: block; margin-bottom: 5px;">Select Your Team:</label>
                     <div class="input-group">
-                        <input type="text" id="teamName" placeholder="Enter your team name" style="flex: 1;">
+                        <select id="teamName" style="flex: 1; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); color: #e0e0e0; padding: 10px 15px; border-radius: 8px; font-size: 16px;">
+                            <option value="">-- Select Team --</option>
+                            <option value="Team 1">Team 1</option>
+                            <option value="Team 2">Team 2</option>
+                            <option value="Team 3">Team 3</option>
+                            <option value="Team 4">Team 4</option>
+                            <option value="Team 5">Team 5</option>
+                            <option value="Team 6">Team 6</option>
+                            <option value="Team 7">Team 7</option>
+                            <option value="Team 8">Team 8</option>
+                            <option value="Team 9">Team 9</option>
+                            <option value="Team 10">Team 10</option>
+                        </select>
                         <button onclick="saveTeamName()">Save</button>
                     </div>
                 </div>
@@ -348,18 +360,12 @@
             </div>
 
             <div class="card">
-                <h2>Live Leaderboard</h2>
-                <div id="leaderboard" class="leaderboard-container">
-                    <div class="loading">Loading leaderboard...</div>
-                </div>
-                <button onclick="submitToGoogleSheets()" 
-                        style="width: 100%; margin-top: 20px; background: linear-gradient(135deg, #27ae60 0%, #229954 100%);">
-                    Submit Scores to Leaderboard
-                </button>
-            </div>
-
-            <div class="card">
                 <h2>Enter Your Estimates</h2>
+                
+                <button onclick="submitToGoogleSheets()" 
+                        style="width: 100%; margin-bottom: 20px; background: linear-gradient(135deg, #27ae60 0%, #229954 100%);">
+                    Submit Scores to Spreadsheet
+                </button>
                 
                 <div id="questionsContainer">
                     <!-- questions will be dynamically added here -->
@@ -404,10 +410,10 @@
         
         // Google Sheets configuration
         const SHEET_CONFIG = {
-            spreadsheetId: 'YOUR_SPREADSHEET_ID_HERE', // get from sheet URL
-            apiKey: 'YOUR_API_KEY_HERE', // from Google Cloud Console
+            spreadsheetId: '1ST39xXXjrw-VXILxKP9Bjthn-cJKKna0tGBTbOqdcPg', // from your sheet URL
+            apiKey: 'AIzaSyB0l94qUpcnbVRnWOJgpG0HWtd8TsgfjLI', // from Google Cloud Console
             range: 'Sheet1!A:Q', // adjust to your sheet name
-            updateWebAppUrl: 'YOUR_WEB_APP_URL_HERE' // from Apps Script deployment
+            updateWebAppUrl: 'YOUR_WEB_APP_URL_HERE' // from Apps Script deployment (NOT your GitHub Pages URL)
         };
         
         // tracking guesses per question
@@ -552,11 +558,8 @@
                 return;
             }
             
-            // check if this is a new submission
-            const isNewSubmission = submittedGuesses[questionId] === undefined;
-            
-            // check if we have guesses left (only for new submissions)
-            if (isNewSubmission && totalGuessesUsed >= MAX_TOTAL_GUESSES) {
+            // check if we have guesses left (updates now cost a guess too)
+            if (totalGuessesUsed >= MAX_TOTAL_GUESSES) {
                 alert('You have used all 30 guesses!');
                 return;
             }
@@ -571,10 +574,8 @@
                 isCorrect: isCorrect
             };
             
-            // only increment for new submissions
-            if (isNewSubmission) {
-                totalGuessesUsed++;
-            }
+            // always increment (updates cost a guess now)
+            totalGuessesUsed++;
             
             updateGuessTracker();
             calculateTotalScore();
@@ -673,94 +674,10 @@
         }
 
         // Google Sheets Integration Functions
-        function loadGoogleSheetsAPI() {
-            const script = document.createElement('script');
-            script.src = 'https://apis.google.com/js/api.js';
-            script.onload = initGoogleSheets;
-            document.head.appendChild(script);
-        }
-
-        function initGoogleSheets() {
-            gapi.load('client', async () => {
-                await gapi.client.init({
-                    apiKey: SHEET_CONFIG.apiKey,
-                    discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
-                });
-                
-                // Start polling for leaderboard updates
-                updateLeaderboard();
-                setInterval(updateLeaderboard, 5000); // update every 5 seconds
-            });
-        }
-
-        async function updateLeaderboard() {
-            try {
-                const response = await gapi.client.sheets.spreadsheets.values.get({
-                    spreadsheetId: SHEET_CONFIG.spreadsheetId,
-                    range: SHEET_CONFIG.range,
-                });
-                
-                const rows = response.result.values || [];
-                displayLeaderboard(rows);
-            } catch (error) {
-                console.error('Error fetching leaderboard:', error);
-            }
-        }
-
-        function displayLeaderboard(rows) {
-            // Skip blank row and header row (rows 0 and 1)
-            const teams = rows.slice(2).map(row => {
-                const teamName = row[0] || 'Unknown Team';
-                // Count non-empty cells from B to P (indices 1-15)
-                const correctCount = row.slice(1, 16).filter(cell => cell && cell !== '').length;
-                const mistakes = 15 - correctCount;
-                
-                // Calculate sum of ratios
-                let ratioSum = 0;
-                for (let i = 1; i <= 15; i++) {
-                    const value = parseFloat(row[i]);
-                    if (!isNaN(value)) {
-                        ratioSum += value;
-                    }
-                }
-                
-                const totalScore = (10 + ratioSum) * Math.pow(2, mistakes);
-                
-                return {
-                    name: teamName,
-                    score: totalScore,
-                    correct: correctCount,
-                    mistakes: mistakes
-                };
-            }).sort((a, b) => a.score - b.score); // sort by score (lower is better)
-            
-            // Update leaderboard display
-            const leaderboardDiv = document.getElementById('leaderboard');
-            if (leaderboardDiv) {
-                leaderboardDiv.innerHTML = teams.map((team, index) => `
-                    <div class="leaderboard-entry ${team.name === getTeamName() ? 'current-team' : ''}">
-                        <span class="rank">#${index + 1}</span>
-                        <span class="team-name">${team.name}</span>
-                        <span class="team-stats">${team.correct}/15 correct</span>
-                        <span class="team-score">${Math.round(team.score).toLocaleString()}</span>
-                    </div>
-                `).join('');
-                
-                // show message if max teams reached
-                if (teams.length >= 10 && !teams.find(t => t.name === getTeamName())) {
-                    leaderboardDiv.innerHTML += `
-                        <div style="text-align: center; margin-top: 20px; color: #e74c3c;">
-                            ⚠️ Maximum 10 teams reached
-                        </div>
-                    `;
-                }
-            }
-        }
-
         async function submitToGoogleSheets() {
             const teamName = getTeamName();
             if (!teamName) {
-                alert('Please enter your team name first!');
+                alert('Please select your team first!');
                 return;
             }
             
@@ -789,9 +706,8 @@
                 });
                 
                 // note: with no-cors mode, we can't read the response
-                // so we just assume success and update
+                // so we just assume success
                 alert('Scores submitted successfully!');
-                updateLeaderboard(); // refresh immediately
             } catch (error) {
                 console.error('Error submitting scores:', error);
                 alert('Error submitting scores. Please try again.');
@@ -799,15 +715,16 @@
         }
 
         function getTeamName() {
-            return localStorage.getItem('teamName') || '';
+            return document.getElementById('teamName').value;
         }
 
         function saveTeamName() {
             const teamName = document.getElementById('teamName').value;
             if (teamName) {
                 localStorage.setItem('teamName', teamName);
-                alert('Team name saved!');
-                document.getElementById('teamName').value = teamName;
+                alert('Team selected!');
+            } else {
+                alert('Please select a team!');
             }
         }
 
@@ -817,13 +734,10 @@
         calculateTotalScore();
         
         // Load team name if saved
-        const savedTeamName = getTeamName();
+        const savedTeamName = localStorage.getItem('teamName');
         if (savedTeamName) {
             document.getElementById('teamName').value = savedTeamName;
         }
-        
-        // Load Google Sheets API
-        loadGoogleSheetsAPI();
     </script>
 </body>
 </html>
