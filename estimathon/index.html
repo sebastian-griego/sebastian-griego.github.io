@@ -109,7 +109,7 @@
             align-items: flex-end;
         }
 
-        input[type="number"], input[type="text"], input[type="password"] {
+        input[type="number"], input[type="text"], input[type="password"], select {
             background: rgba(255, 255, 255, 0.1);
             border: 2px solid rgba(255, 255, 255, 0.2);
             color: #e0e0e0;
@@ -120,7 +120,7 @@
             transition: all 0.3s;
         }
 
-        input[type="number"]:focus, input[type="text"]:focus, input[type="password"]:focus {
+        input[type="number"]:focus, input[type="text"]:focus, input[type="password"]:focus, select:focus {
             outline: none;
             border-color: #f39c12;
             background: rgba(255, 255, 255, 0.15);
@@ -247,63 +247,6 @@
             color: #95a5a6;
             font-style: italic;
         }
-
-        /* Leaderboard styles */
-        .leaderboard-container {
-            margin-top: 20px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        
-        .leaderboard-entry {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            margin-bottom: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            transition: all 0.3s;
-        }
-        
-        .leaderboard-entry:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .leaderboard-entry.current-team {
-            background: rgba(243, 156, 18, 0.2);
-            border: 2px solid #f39c12;
-        }
-        
-        .rank {
-            font-weight: bold;
-            color: #f39c12;
-            min-width: 40px;
-        }
-        
-        .team-name {
-            flex: 1;
-            font-weight: 500;
-        }
-        
-        .team-stats {
-            color: #95a5a6;
-            font-size: 0.9em;
-            margin-right: 20px;
-        }
-        
-        .team-score {
-            font-weight: bold;
-            color: #e74c3c;
-            min-width: 100px;
-            text-align: right;
-        }
-        
-        .loading {
-            text-align: center;
-            color: #95a5a6;
-            padding: 20px;
-        }
     </style>
 </head>
 <body>
@@ -315,7 +258,7 @@
             <div class="instructions">
                 <strong>Instructions:</strong> You have 30 total guesses across all 15 questions. 
                 For each question, provide a range [min, max] that you think contains the answer.
-                Each submission or update uses one of your 30 guesses.
+                Each submission or update uses one of your 30 guesses. Scores are automatically sent to the spreadsheet.
                 <br><br>
                 <strong>Scoring:</strong> Lower scores are better! 
                 Score = (10 + sum of ⌊max/min⌋ for correct guesses) × 2^(# unanswered questions)
@@ -362,11 +305,6 @@
             <div class="card">
                 <h2>Enter Your Estimates</h2>
                 
-                <button onclick="submitToGoogleSheets()" 
-                        style="width: 100%; margin-bottom: 20px; background: linear-gradient(135deg, #27ae60 0%, #229954 100%);">
-                    Submit Scores to Spreadsheet
-                </button>
-                
                 <div id="questionsContainer">
                     <!-- questions will be dynamically added here -->
                 </div>
@@ -410,10 +348,10 @@
         
         // Google Sheets configuration
         const SHEET_CONFIG = {
-            spreadsheetId: '1ST39xXXjrw-VXILxKP9Bjthn-cJKKna0tGBTbOqdcPg', // from your sheet URL
-            apiKey: 'AIzaSyB0l94qUpcnbVRnWOJgpG0HWtd8TsgfjLI', // from Google Cloud Console
-            range: 'Sheet1!A:Q', // adjust to your sheet name
-            updateWebAppUrl: 'https://script.google.com/macros/s/AKfycbyEFYxfwcfib7wQXCLLHPBYRtUHg9gFM_o9wciU0TQRg9NsCArEWKNAdJP3QIzPiQKg6g/exec' // from Apps Script deployment (NOT your GitHub Pages URL)
+            spreadsheetId: '1ST39xXXjrw-VXILxKP9Bjthn-cJKKna0tGBTbOqdcPg',
+            apiKey: 'AIzaSyB0l94qUpcnbVRnWOJgpG0HWtd8TsgfjLI',
+            range: 'Sheet1!A:Q', // adjust sheet name if needed
+            updateWebAppUrl: 'https://script.google.com/macros/s/AKfycbzZWdLhAka6FISs2TFM8gmegrYdJbWq4yrdiw-iWvXQ-1cvlosTaV6BQ6fVckeVZbIQIw/exec' // from Apps Script deployment (NOT your GitHub Pages URL)
         };
         
         // tracking guesses per question
@@ -531,6 +469,12 @@
         }
 
         function submitQuestion(questionId) {
+            // check if team is selected
+            if (!getTeamName()) {
+                alert('Please select your team first!');
+                return;
+            }
+            
             const question = questions.find(q => q.id === questionId);
             const minInput = document.getElementById(`min-${questionId}`);
             const maxInput = document.getElementById(`max-${questionId}`);
@@ -579,6 +523,9 @@
             
             updateGuessTracker();
             calculateTotalScore();
+            
+            // automatically submit to Google Sheets
+            submitToGoogleSheets();
             
             // re-render to show submitted state
             renderQuestions();
@@ -677,7 +624,7 @@
         async function submitToGoogleSheets() {
             const teamName = getTeamName();
             if (!teamName) {
-                alert('Please select your team first!');
+                // silently fail if no team selected yet
                 return;
             }
             
@@ -705,12 +652,11 @@
                     })
                 });
                 
-                // note: with no-cors mode, we can't read the response
-                // so we just assume success
-                alert('Scores submitted successfully!');
+                // silently succeed - no alerts
+                console.log('Scores submitted to spreadsheet');
             } catch (error) {
                 console.error('Error submitting scores:', error);
-                alert('Error submitting scores. Please try again.');
+                // fail silently - don't interrupt the user
             }
         }
 
