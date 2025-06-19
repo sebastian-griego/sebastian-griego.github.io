@@ -281,7 +281,7 @@
                 Each submission or update uses one of your 30 guesses. Scores are automatically sent to the spreadsheet.
                 <br><br>
                 <strong>Scoring:</strong> Lower scores are better! 
-                Score = (10 + sum of ⌊max/min⌋ for correct guesses) × 2^(# unanswered questions)
+                Score = (10 + sum of ⌈max/min⌉ for correct guesses) × 2^(# unanswered questions)
                 <br>
                 
                 <div style="margin-top: 15px;">
@@ -464,7 +464,7 @@ Team 9: kappa9
             Object.entries(submittedGuesses).forEach(([questionId, guess]) => {
                 if (guess.isCorrect) {
                     // add floor(max/min) to sum
-                    rangeSum += Math.floor(guess.max / guess.min);
+                    rangeSum += Math.ceil(guess.max / guess.min);
                     correctCount++;
                 }
             });
@@ -540,8 +540,8 @@ Team 9: kappa9
             const question = questions.find(q => q.id === questionId);
             
             if (guess.isCorrect) {
-                const contribution = Math.floor(guess.max / guess.min);
-                return `✓ Correct! Range ratio: ⌊${guess.max}/${guess.min}⌋ = ${contribution}`;
+                const contribution = Math.ceil(guess.max / guess.min);
+                return `✓ Correct! Range ratio: ⌈${guess.max}/${guess.min}⌉ = ${contribution}`;
             } else {
                 return `✗ Incorrect. Try again!`;
             }
@@ -749,7 +749,7 @@ Team 9: kappa9
                         if (submittedGuesses[q.id].isCorrect) {
                             // correct answer: send the ratio
                             const guess = submittedGuesses[q.id];
-                            values[index] = Math.floor(guess.max / guess.min);
+                            values[index] = Math.ceil(guess.max / guess.min);
                         } else {
                             // incorrect answer: send x's based on number of incorrect attempts
                             const incorrectCount = incorrectCounts[q.id] || 1;
