@@ -248,12 +248,24 @@
             font-style: italic;
         }
         
+        .guess-history {
+            margin-top: 10px;
+            font-size: 0.85em;
+            color: #95a5a6;
+        }
+        
         details summary {
+            cursor: pointer;
             outline: none;
         }
         
         details summary::-webkit-details-marker {
             color: #95a5a6;
+        }
+        
+        .history-item {
+            margin-bottom: 3px;
+            padding-left: 20px;
         }
     </style>
 </head>
@@ -271,8 +283,6 @@
                 <strong>Scoring:</strong> Lower scores are better! 
                 Score = (10 + sum of ⌊max/min⌋ for correct guesses) × 2^(# unanswered questions)
                 <br>
-                <span class="note-text">Each question you don't answer correctly (or skip) doubles your score! Tight ranges on correct answers help keep the base score low.</span>
-                <span class="note-text">Each question you don't answer correctly (or skip) doubles your score! Tight ranges on correct answers help keep the base score low.</span>
                 
                 <div style="margin-top: 15px;">
                     <label for="teamName" style="display: block; margin-bottom: 5px;">Select Your Team:</label>
@@ -507,12 +517,12 @@ Team 9: kappa9
                         ${isSubmitted ? getScoreMessage(q.id) : ''}
                     </div>
                     ${history.length > 0 ? `
-                        <div style="margin-top: 10px; font-size: 0.85em; color: #95a5a6;">
+                        <div class="guess-history">
                             <details>
-                                <summary style="cursor: pointer;">Guess History (${history.length})</summary>
-                                <div style="margin-top: 5px; padding-left: 20px;">
+                                <summary>Guess History (${history.length})</summary>
+                                <div style="margin-top: 5px;">
                                     ${history.map((h, index) => `
-                                        <div style="margin-bottom: 3px;">
+                                        <div class="history-item">
                                             ${index + 1}. [${h.min}, ${h.max}] - ${h.isCorrect ? '✓' : '✗'} - ${h.timestamp}
                                         </div>
                                     `).join('')}
@@ -577,38 +587,55 @@ Team 9: kappa9
                 return;
             }
             
-            // check if correct
-            const isCorrect = min <= question.answer && max >= question.answer;
+            // check if the guess is the same as the previous one
+            const previousGuess = submittedGuesses[questionId];
+            const isSameGuess = previousGuess && previousGuess.min === min && previousGuess.max === max;
             
-            // track incorrect guesses
-            if (!isCorrect) {
-                if (!incorrectCounts[questionId]) {
+            if (!isSameGuess) {
+                // check if correct
+                const isCorrect = min <= question.answer && max >= question.answer;
+                
+                // track incorrect guesses
+                if (!isCorrect) {
+                    if (!incorrectCounts[questionId]) {
+                        incorrectCounts[questionId] = 0;
+                    }
+                    incorrectCounts[questionId]++;
+                } else {
+                    // if now correct, reset incorrect count
                     incorrectCounts[questionId] = 0;
                 }
-                incorrectCounts[questionId]++;
-            } else {
-                // if now correct, reset incorrect count
-                incorrectCounts[questionId] = 0;
+                
+                // save the guess
+                submittedGuesses[questionId] = {
+                    min: min,
+                    max: max,
+                    isCorrect: isCorrect
+                };
+                
+                // add to history
+                if (!guessHistory[questionId]) {
+                    guessHistory[questionId] = [];
+                }
+                guessHistory[questionId].push({
+                    min: min,
+                    max: max,
+                    isCorrect: isCorrect,
+                    timestamp: new Date().toLocaleTimeString()
+                });
+                
+                // increment totalGuessesUsed only if the guess is different
+                totalGuessesUsed++;
+                
+                updateGuessTracker();
+                calculateTotalScore();
+                
+                // automatically submit to Google Sheets
+                submitToGoogleSheets();
+                
+                // re-render to show submitted state
+                renderQuestions();
             }
-            
-            // save the guess
-            submittedGuesses[questionId] = {
-                min: min,
-                max: max,
-                isCorrect: isCorrect
-            };
-            
-            // always increment (updates cost a guess now)
-            totalGuessesUsed++;
-            
-            updateGuessTracker();
-            calculateTotalScore();
-            
-            // automatically submit to Google Sheets
-            submitToGoogleSheets();
-            
-            // re-render to show submitted state
-            renderQuestions();
         }
 
         function toggleAdmin() {
@@ -814,7 +841,6 @@ Team 9: kappa9
         function logout() {
             localStorage.removeItem('teamName');
             localStorage.removeItem('teamCode');
-            localStorage.removeItem('currentTeamData');
             localStorage.removeItem('currentTeamData');
             
             // reset UI
