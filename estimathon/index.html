@@ -247,6 +247,14 @@
             color: #95a5a6;
             font-style: italic;
         }
+        
+        details summary {
+            outline: none;
+        }
+        
+        details summary::-webkit-details-marker {
+            color: #95a5a6;
+        }
     </style>
 </head>
 <body>
@@ -263,6 +271,8 @@
                 <strong>Scoring:</strong> Lower scores are better! 
                 Score = (10 + sum of ⌊max/min⌋ for correct guesses) × 2^(# unanswered questions)
                 <br>
+                <span class="note-text">Each question you don't answer correctly (or skip) doubles your score! Tight ranges on correct answers help keep the base score low.</span>
+                <span class="note-text">Each question you don't answer correctly (or skip) doubles your score! Tight ranges on correct answers help keep the base score low.</span>
                 
                 <div style="margin-top: 15px;">
                     <label for="teamName" style="display: block; margin-bottom: 5px;">Select Your Team:</label>
@@ -400,6 +410,7 @@ Team 9: kappa9
         let submittedGuesses = {};
         let totalGuessesUsed = 0;
         let incorrectCounts = {}; // tracks number of incorrect guesses per question
+        let guessHistory = {}; // stores history of all guesses per question
         
         // test questions that show the answer
         let questions = JSON.parse(localStorage.getItem('estimathonQuestions')) || [
@@ -470,6 +481,7 @@ Team 9: kappa9
             
             questions.forEach(q => {
                 const isSubmitted = submittedGuesses[q.id] !== undefined;
+                const history = guessHistory[q.id] || [];
                 const questionDiv = document.createElement('div');
                 questionDiv.className = `question ${isSubmitted ? 'submitted' : ''}`;
                 questionDiv.innerHTML = `
@@ -494,6 +506,20 @@ Team 9: kappa9
                          id="score-${q.id}">
                         ${isSubmitted ? getScoreMessage(q.id) : ''}
                     </div>
+                    ${history.length > 0 ? `
+                        <div style="margin-top: 10px; font-size: 0.85em; color: #95a5a6;">
+                            <details>
+                                <summary style="cursor: pointer;">Guess History (${history.length})</summary>
+                                <div style="margin-top: 5px; padding-left: 20px;">
+                                    ${history.map((h, index) => `
+                                        <div style="margin-bottom: 3px;">
+                                            ${index + 1}. [${h.min}, ${h.max}] - ${h.isCorrect ? '✓' : '✗'} - ${h.timestamp}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </details>
+                        </div>
+                    ` : ''}
                 `;
                 container.appendChild(questionDiv);
             });
@@ -565,10 +591,6 @@ Team 9: kappa9
                 incorrectCounts[questionId] = 0;
             }
             
-            // check if the guess is the same as the previous one
-            const previousGuess = submittedGuesses[questionId];
-            const isSameGuess = previousGuess && previousGuess.min === min && previousGuess.max === max;
-            
             // save the guess
             submittedGuesses[questionId] = {
                 min: min,
@@ -576,10 +598,8 @@ Team 9: kappa9
                 isCorrect: isCorrect
             };
             
-            // increment totalGuessesUsed only if the guess is different
-            if (!isSameGuess) {
-                totalGuessesUsed++;
-            }
+            // always increment (updates cost a guess now)
+            totalGuessesUsed++;
             
             updateGuessTracker();
             calculateTotalScore();
@@ -660,10 +680,12 @@ Team 9: kappa9
         function deleteQuestion(id) {
             questions = questions.filter(q => q.id !== id);
             // also remove any submitted guesses for this question
-            if (submittedGuesses[id]) {
-                totalGuessesUsed--;
+            if (guessHistory[id]) {
+                // decrement by the number of guesses made for this question
+                totalGuessesUsed -= guessHistory[id].length;
                 delete submittedGuesses[id];
                 delete incorrectCounts[id];
+                delete guessHistory[id];
                 updateGuessTracker();
                 calculateTotalScore();
             }
@@ -676,6 +698,8 @@ Team 9: kappa9
             if (confirm('Are you sure you want to reset all questions to defaults? This will also clear all submitted guesses.')) {
                 localStorage.removeItem('estimathonQuestions');
                 submittedGuesses = {};
+                incorrectCounts = {};
+                guessHistory = {};
                 totalGuessesUsed = 0;
                 location.reload();
             }
@@ -762,6 +786,7 @@ Team 9: kappa9
                 // switching teams - clear all previous data
                 submittedGuesses = {};
                 incorrectCounts = {};
+                guessHistory = {};
                 totalGuessesUsed = 0;
             }
             
@@ -779,6 +804,7 @@ Team 9: kappa9
             // reset guesses for new login
             submittedGuesses = {};
             incorrectCounts = {};
+            guessHistory = {};
             totalGuessesUsed = 0;
             updateGuessTracker();
             calculateTotalScore();
@@ -788,6 +814,8 @@ Team 9: kappa9
         function logout() {
             localStorage.removeItem('teamName');
             localStorage.removeItem('teamCode');
+            localStorage.removeItem('currentTeamData');
+            localStorage.removeItem('currentTeamData');
             
             // reset UI
             document.getElementById('teamName').value = '';
@@ -800,6 +828,7 @@ Team 9: kappa9
             // clear all data
             submittedGuesses = {};
             incorrectCounts = {};
+            guessHistory = {};
             totalGuessesUsed = 0;
             updateGuessTracker();
             calculateTotalScore();
