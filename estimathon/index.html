@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estimathon Competition</title>
+    <title>SUMaC Estimathon</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -271,7 +273,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🎯 Estimathon Competition</h1>
+        <h1>🎯 SUMaC Estimathon</h1>
         
         <!-- Participant Section -->
         <div id="participantSection">
@@ -281,7 +283,7 @@
                 Each submission or update uses one of your 30 guesses. Scores are automatically sent to the spreadsheet.
                 <br><br>
                 <strong>Scoring:</strong> Lower scores are better! 
-                Score = (10 + sum of ⌈max/min⌉ for correct guesses) × 2^(# unanswered questions)
+                \( \text{Score} = \left(10 + \sum \left\lceil \frac{\text{max}}{\text{min}} \right\rceil \text{ for correct guesses} \right) \times 2^{\# \text{ incorrect questions}} \)
                 <br>
                 
                 <div style="margin-top: 15px;">
