@@ -283,7 +283,7 @@
                 Each submission or update uses one of your 30 guesses. Scores are automatically sent to the spreadsheet.
                 <br><br>
                 <strong>Scoring:</strong> Lower scores are better! 
-                \( \text{Score} = \left(10 + \sum \left\lceil \frac{\text{max}}{\text{min}} \right\rceil \text{ for correct guesses} \right) \times 2^{\# \text{ incorrect questions}} \)
+                \( \text{Score} = \left(10 + \sum_{[a_i,b_i] \in \text{Good Intervals}} \left\lceil \frac{b_i}{a_i} \right\rceil \right) \times 2^{\# \text{ incorrect questions}} \)
                 <br>
                 
                 <div style="margin-top: 15px;">
