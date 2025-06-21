@@ -270,18 +270,6 @@
             padding-left: 20px;
         }
     </style>
-    <script>
-        // Disable right-click context menu
-        document.addEventListener('contextmenu', e => e.preventDefault());
-        
-        // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
-        document.onkeydown = function(e) {
-            if(e.keyCode == 123) return false; // F12
-            if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false;
-            if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false;
-            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false;
-        }
-    </script>
 </head>
 <body>
     <div class="container">
@@ -361,9 +349,16 @@
                 
                 <div id="adminControls" class="hidden">
                     <h3 style="margin: 20px 0;">Team Codes</h3>
-                    <div id="teamCodesList" style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; font-size: 0.9em;">
-                        <!-- Team codes will be shown after admin login -->
-                    </div>
+                    <pre style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; font-size: 0.9em;">Team 0: bus
+Team 1: dodecahedron
+Team 2: taurus
+Team 3: megatron
+Team 4: slingsby
+Team 5: team2
+Team 6: quandle
+Team 7: angelisland
+Team 8: shisucks
+Team 9: chalant </pre>
                     
                     <h3 style="margin: 20px 0;">Add/Edit Questions</h3>
                     
@@ -383,38 +378,11 @@
     <div class="admin-toggle" onclick="toggleAdmin()">⚙️</div>
 
     <script>
+        const ADMIN_PASSWORD = 'estimathon123';
         const MAX_TOTAL_GUESSES = 30;
         
-        // Simple hash function for team codes
-        function simpleHash(str) {
-            let hash = 0;
-            for (let i = 0; i < str.length; i++) {
-                const char = str.charCodeAt(i);
-                hash = ((hash << 5) - hash) + char;
-                hash = hash & hash;
-            }
-            return hash.toString();
-        }
-        
-        // Obfuscated admin password (hash of 'estimathon123')
-        const ADMIN_PASS_HASH = '-1774204409';
-        
-        // Team codes stored as hashes
-        const TEAM_CODE_HASHES = {
-            'Team 0': '3038423',
-            'Team 1': '291673055',
-            'Team 2': '-827372215',
-            'Team 3': '-217723998',
-            'Team 4': '1855852311',
-            'Team 5': '-371076406',
-            'Team 6': '-543488576',
-            'Team 7': '-935838970',
-            'Team 8': '1857735987',
-            'Team 9': '-941996521'
-        };
-        
-        // Actual team codes (only shown in admin panel after login)
-        const ACTUAL_TEAM_CODES = {
+        // Team codes - change these to whatever you want
+        const TEAM_CODES = {
             'Team 0': 'bus',
             'Team 1': 'dodecahedron',
             'Team 2': 'taurus',
@@ -427,46 +395,52 @@
             'Team 9': 'chalant'
         };
         
+        // Admin can update team codes here or in the code above
+        const teamCodesInfo = `
+Team Codes (change in code):
+Team 0: bus
+Team 1: dodecahedron
+Team 2: taurus
+Team 3: megatron
+Team 4: slingsby
+Team 5: team2
+Team 6: quandle
+Team 7: angelisland
+Team 8: shisucks
+Team 9: chalant
+        `;
+        
         // Google Sheets configuration
         const SHEET_CONFIG = {
             spreadsheetId: '1ST39xXXjrw-VXILxKP9Bjthn-cJKKna0tGBTbOqdcPg',
             apiKey: 'AIzaSyB0l94qUpcnbVRnWOJgpG0HWtd8TsgfjLI',
-            range: 'Sheet1!A:Q',
-            updateWebAppUrl: 'https://script.google.com/macros/s/AKfycbzZWdLhAka6FISs2TFM8gmegrYdJbWq4yrdiw-iWvXQ-1cvlosTaV6BQ6fVckeVZbIQIw/exec'
+            range: 'Sheet1!A:Q', // adjust sheet name if needed
+            updateWebAppUrl: 'https://script.google.com/macros/s/AKfycbzZWdLhAka6FISs2TFM8gmegrYdJbWq4yrdiw-iWvXQ-1cvlosTaV6BQ6fVckeVZbIQIw/exec' // from Apps Script deployment (NOT your GitHub Pages URL)
         };
         
         // tracking guesses per question
         let submittedGuesses = {};
         let totalGuessesUsed = 0;
-        let incorrectCounts = {};
-        let guessHistory = {};
+        let incorrectCounts = {}; // tracks number of incorrect guesses per question
+        let guessHistory = {}; // stores history of all guesses per question
         
-        // Encode/decode functions for answers
-        function encodeAnswer(num) {
-            return btoa(num.toString()).split('').reverse().join('');
-        }
-        
-        function decodeAnswer(str) {
-            return parseInt(atob(str.split('').reverse().join('')));
-        }
-        
-        // Questions with encoded answers
+        // test questions that show the answer
         let questions = JSON.parse(localStorage.getItem('estimathonQuestions')) || [
-            { id: 1, text: "Test Question 1: The answer is 42", answer: "MjQ=" },
-            { id: 2, text: "Test Question 2: The answer is 1337", answer: "NzMzMQ==" },
-            { id: 3, text: "Test Question 3: The answer is 256", answer: "NjUy" },
-            { id: 4, text: "Test Question 4: The answer is 999", answer: "OTk5" },
-            { id: 5, text: "Test Question 5: The answer is 12345", answer: "NTQzMjE=" },
-            { id: 6, text: "Test Question 6: The answer is 77", answer: "Nzc=" },
-            { id: 7, text: "Test Question 7: The answer is 500", answer: "MDA1" },
-            { id: 8, text: "Test Question 8: The answer is 2048", answer: "ODQwMg==" },
-            { id: 9, text: "Test Question 9: The answer is 365", answer: "NTYz" },
-            { id: 10, text: "Test Question 10: The answer is 60", answer: "MDY=" },
-            { id: 11, text: "Test Question 11: The answer is 1000000", answer: "MDAwMDAwMQ==" },
-            { id: 12, text: "Test Question 12: The answer is 314", answer: "NDEz" },
-            { id: 13, text: "Test Question 13: The answer is 88", answer: "ODg=" },
-            { id: 14, text: "Test Question 14: The answer is 1776", answer: "Njc3MQ==" },
-            { id: 15, text: "Test Question 15: The answer is 404", answer: "NDA0" }
+            { id: 1, text: "Test Question 1: The answer is 42", answer: 42 },
+            { id: 2, text: "Test Question 2: The answer is 1337", answer: 1337 },
+            { id: 3, text: "Test Question 3: The answer is 256", answer: 256 },
+            { id: 4, text: "Test Question 4: The answer is 999", answer: 999 },
+            { id: 5, text: "Test Question 5: The answer is 12345", answer: 12345 },
+            { id: 6, text: "Test Question 6: The answer is 77", answer: 77 },
+            { id: 7, text: "Test Question 7: The answer is 500", answer: 500 },
+            { id: 8, text: "Test Question 8: The answer is 2048", answer: 2048 },
+            { id: 9, text: "Test Question 9: The answer is 365", answer: 365 },
+            { id: 10, text: "Test Question 10: The answer is 60", answer: 60 },
+            { id: 11, text: "Test Question 11: The answer is 1000000", answer: 1000000 },
+            { id: 12, text: "Test Question 12: The answer is 314", answer: 314 },
+            { id: 13, text: "Test Question 13: The answer is 88", answer: 88 },
+            { id: 14, text: "Test Question 14: The answer is 1776", answer: 1776 },
+            { id: 15, text: "Test Question 15: The answer is 404", answer: 404 }
         ];
 
         function saveQuestions() {
@@ -491,16 +465,19 @@
             
             Object.entries(submittedGuesses).forEach(([questionId, guess]) => {
                 if (guess.isCorrect) {
+                    // add floor(max/min) to sum
                     rangeSum += Math.ceil(guess.max / guess.min);
                     correctCount++;
                 }
             });
             
+            // mistakes = total questions - correct answers
             const totalQuestions = questions.length;
             const mistakes = totalQuestions - correctCount;
             
             const totalScore = (10 + rangeSum) * Math.pow(2, mistakes);
             
+            // update all display elements
             document.getElementById('scoreValue').textContent = totalScore;
             document.getElementById('correctGuesses').textContent = correctCount;
             document.getElementById('mistakes').textContent = mistakes;
@@ -562,6 +539,7 @@
 
         function getScoreMessage(questionId) {
             const guess = submittedGuesses[questionId];
+            const question = questions.find(q => q.id === questionId);
             
             if (guess.isCorrect) {
                 const contribution = Math.ceil(guess.max / guess.min);
@@ -572,6 +550,7 @@
         }
 
         function submitQuestion(questionId) {
+            // check if team is selected and logged in
             if (!getTeamName() || !isTeamLoggedIn()) {
                 alert('Please select your team and enter the code first!');
                 return;
@@ -585,8 +564,10 @@
             const min = parseFloat(minInput.value);
             const max = parseFloat(maxInput.value);
             
+            // reset error
             errorDiv.textContent = '';
             
+            // validate
             if (!min || !max) {
                 errorDiv.textContent = 'Please enter both min and max values';
                 return;
@@ -602,34 +583,39 @@
                 return;
             }
             
+            // check if we have guesses left (updates now cost a guess too)
             if (totalGuessesUsed >= MAX_TOTAL_GUESSES) {
                 alert('You have used all 30 guesses!');
                 return;
             }
             
+            // check if the guess is the same as the previous one
             const previousGuess = submittedGuesses[questionId];
             const isSameGuess = previousGuess && previousGuess.min === min && previousGuess.max === max;
             
             if (!isSameGuess) {
-                // Decode answer for comparison
-                const actualAnswer = decodeAnswer(question.answer);
-                const isCorrect = min <= actualAnswer && max >= actualAnswer;
+                // check if correct
+                const isCorrect = min <= question.answer && max >= question.answer;
                 
+                // track incorrect guesses
                 if (!isCorrect) {
                     if (!incorrectCounts[questionId]) {
                         incorrectCounts[questionId] = 0;
                     }
                     incorrectCounts[questionId]++;
                 } else {
+                    // if now correct, reset incorrect count
                     incorrectCounts[questionId] = 0;
                 }
                 
+                // save the guess
                 submittedGuesses[questionId] = {
                     min: min,
                     max: max,
                     isCorrect: isCorrect
                 };
                 
+                // add to history
                 if (!guessHistory[questionId]) {
                     guessHistory[questionId] = [];
                 }
@@ -640,11 +626,16 @@
                     timestamp: new Date().toLocaleTimeString()
                 });
                 
+                // increment totalGuessesUsed only if the guess is different
                 totalGuessesUsed++;
                 
                 updateGuessTracker();
                 calculateTotalScore();
+                
+                // automatically submit to Google Sheets
                 submitToGoogleSheets();
+                
+                // re-render to show submitted state
                 renderQuestions();
             }
         }
@@ -664,11 +655,8 @@
 
         function unlockAdmin() {
             const password = document.getElementById('adminPassword').value;
-            if (simpleHash(password) === ADMIN_PASS_HASH) {
+            if (password === ADMIN_PASSWORD) {
                 document.getElementById('adminControls').classList.remove('hidden');
-                // Show actual team codes after admin login
-                document.getElementById('teamCodesList').innerHTML = Object.entries(ACTUAL_TEAM_CODES)
-                    .map(([team, code]) => `${team}: ${code}`).join('<br>');
                 renderAdminQuestions();
             } else {
                 alert('Incorrect password');
@@ -689,7 +677,7 @@
                     </div>
                     <div style="margin-bottom: 15px;">
                         <label for="q-answer-${q.id}">Answer:</label>
-                        <input type="number" id="q-answer-${q.id}" value="${decodeAnswer(q.answer)}" style="width: 100%; margin-top: 5px;">
+                        <input type="number" id="q-answer-${q.id}" value="${q.answer}" style="width: 100%; margin-top: 5px;">
                     </div>
                     <div>
                         <button class="submit-btn update" onclick="updateQuestion(${q.id})">Update</button>
@@ -713,13 +701,14 @@
             questions.push({
                 id: newId,
                 text: questionText,
-                answer: encodeAnswer(answer)
+                answer: answer
             });
             
             saveQuestions();
             renderAdminQuestions();
             renderQuestions();
             
+            // clear inputs
             document.getElementById('newQuestion').value = '';
             document.getElementById('correctAnswer').value = '';
         }
@@ -736,16 +725,20 @@
             const question = questions.find(q => q.id === id);
             if (question) {
                 question.text = questionText;
-                question.answer = encodeAnswer(answer);
+                question.answer = answer;
                 saveQuestions();
-                renderQuestions();
+                renderQuestions(); // Update the main view for participants
                 alert(`Question ${id} updated successfully.`);
+            } else {
+                alert(`Error: Question ${id} not found.`);
             }
         }
 
         function deleteQuestion(id) {
             questions = questions.filter(q => q.id !== id);
+            // also remove any submitted guesses for this question
             if (guessHistory[id]) {
+                // decrement by the number of guesses made for this question
                 totalGuessesUsed -= guessHistory[id].length;
                 delete submittedGuesses[id];
                 delete incorrectCounts[id];
@@ -769,21 +762,26 @@
             }
         }
 
+        // Google Sheets Integration Functions
         async function submitToGoogleSheets() {
             const teamName = getTeamName();
             if (!teamName || !isTeamLoggedIn()) {
+                // silently fail if no team selected or not logged in
                 return;
             }
             
-            const values = new Array(15).fill('');
+            // Calculate values for each question
+            const values = new Array(15).fill(''); // empty array for 15 questions
             
             questions.forEach((q, index) => {
                 if (index < 15) {
                     if (submittedGuesses[q.id]) {
                         if (submittedGuesses[q.id].isCorrect) {
+                            // correct answer: send the ratio
                             const guess = submittedGuesses[q.id];
                             values[index] = Math.ceil(guess.max / guess.min);
                         } else {
+                            // incorrect answer: send x's based on number of incorrect attempts
                             const incorrectCount = incorrectCounts[q.id] || 1;
                             values[index] = 'x'.repeat(incorrectCount);
                         }
@@ -791,10 +789,11 @@
                 }
             });
             
+            // Send to Google Apps Script Web App
             try {
                 const response = await fetch(SHEET_CONFIG.updateWebAppUrl, {
                     method: 'POST',
-                    mode: 'no-cors',
+                    mode: 'no-cors', // important for CORS
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -804,9 +803,11 @@
                     })
                 });
                 
+                // silently succeed - no alerts
                 console.log('Scores submitted to spreadsheet');
             } catch (error) {
                 console.error('Error submitting scores:', error);
+                // fail silently - don't interrupt the user
             }
         }
 
@@ -817,9 +818,9 @@
         function isTeamLoggedIn() {
             const teamName = getTeamName();
             const savedTeam = localStorage.getItem('teamName');
-            const savedCode = localStorage.getItem('teamCodeHash');
+            const savedCode = localStorage.getItem('teamCode');
             
-            return teamName && savedTeam === teamName && savedCode === TEAM_CODE_HASHES[teamName];
+            return teamName && savedTeam === teamName && savedCode === TEAM_CODES[teamName];
         }
 
         function saveTeamName() {
@@ -831,14 +832,15 @@
                 return;
             }
             
-            const codeHash = simpleHash(teamCode);
-            if (TEAM_CODE_HASHES[teamName] !== codeHash) {
+            if (TEAM_CODES[teamName] !== teamCode) {
                 alert('Incorrect team code!');
                 return;
             }
             
+            // check if switching teams
             const currentTeamData = localStorage.getItem('currentTeamData');
             if (currentTeamData !== teamName) {
+                // switching teams - clear all previous data
                 submittedGuesses = {};
                 incorrectCounts = {};
                 guessHistory = {};
@@ -846,15 +848,17 @@
             }
             
             localStorage.setItem('teamName', teamName);
-            localStorage.setItem('teamCodeHash', codeHash);
+            localStorage.setItem('teamCode', teamCode);
             localStorage.setItem('currentTeamData', teamName);
             alert('Logged in successfully!');
             
+            // show logout button, hide login elements
             document.getElementById('teamName').disabled = true;
             document.getElementById('teamCode').style.display = 'none';
             document.querySelector('button[onclick="saveTeamName()"]').style.display = 'none';
             document.getElementById('logoutBtn').style.display = 'inline-block';
             
+            // reset guesses for new login
             submittedGuesses = {};
             incorrectCounts = {};
             guessHistory = {};
@@ -866,9 +870,10 @@
         
         function logout() {
             localStorage.removeItem('teamName');
-            localStorage.removeItem('teamCodeHash');
+            localStorage.removeItem('teamCode');
             localStorage.removeItem('currentTeamData');
             
+            // reset UI
             document.getElementById('teamName').value = '';
             document.getElementById('teamName').disabled = false;
             document.getElementById('teamCode').value = '';
@@ -876,6 +881,7 @@
             document.querySelector('button[onclick="saveTeamName()"]').style.display = 'inline-block';
             document.getElementById('logoutBtn').style.display = 'none';
             
+            // clear all data
             submittedGuesses = {};
             incorrectCounts = {};
             guessHistory = {};
@@ -887,23 +893,27 @@
             alert('Logged out successfully!');
         }
 
-        // Initialize
+        // initialize
         renderQuestions();
         updateGuessTracker();
         calculateTotalScore();
         
+        // Load team name if saved and still valid
         const savedTeamName = localStorage.getItem('teamName');
-        const savedCodeHash = localStorage.getItem('teamCodeHash');
-        if (savedTeamName && savedCodeHash && TEAM_CODE_HASHES[savedTeamName] === savedCodeHash) {
+        const savedCode = localStorage.getItem('teamCode');
+        if (savedTeamName && savedCode && TEAM_CODES[savedTeamName] === savedCode) {
             document.getElementById('teamName').value = savedTeamName;
+            document.getElementById('teamCode').value = savedCode;
             
+            // show logged in state
             document.getElementById('teamName').disabled = true;
             document.getElementById('teamCode').style.display = 'none';
             document.querySelector('button[onclick="saveTeamName()"]').style.display = 'none';
             document.getElementById('logoutBtn').style.display = 'inline-block';
         } else {
+            // clear invalid login
             localStorage.removeItem('teamName');
-            localStorage.removeItem('teamCodeHash');
+            localStorage.removeItem('teamCode');
         }
     </script>
 </body>
