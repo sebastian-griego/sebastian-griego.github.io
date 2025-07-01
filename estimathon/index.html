@@ -340,7 +340,7 @@
         <!-- Participant Section -->
         <div id="participantSection">
             <div class="instructions">
-                <strong>Instructions:</strong> Select your team (0-9) and enter your team code to begin. You have 60 total guesses across all 15 questions. 
+                <strong>Instructions:</strong> Select your team (0-9) and enter your team code to begin. You have 60 total guesses across all 20 questions. 
                 For each question, provide a range [min, max] that you think contains the answer.
                 Each submission or update uses one of your 60 guesses. Scores are automatically sent to the spreadsheet.
                 <br><br>
@@ -376,14 +376,14 @@
             </div>
 
             <div id="totalScore" class="total-score">
-                🎯 Score: <span id="scoreValue">327680</span>
+                🎯 Score: <span id="scoreValue">10485760</span>
                 <div class="score-summary">
                     <span>Correct: <span id="correctGuesses">0</span></span>
-                    <span>Unanswered: <span id="mistakes">15</span></span>
+                    <span>Unanswered: <span id="mistakes">20</span></span>
                     <span>Guesses used: <span id="guessesUsed">0</span></span>
                 </div>
                 <div class="score-formula">
-                    (10 + <span id="rangeSum">0</span>) × 2^<span id="mistakeCount">15</span> = <span id="finalScore">327680</span>
+                    (10 + <span id="rangeSum">0</span>) × 2^<span id="mistakeCount">20</span> = <span id="finalScore">10485760</span>
                 </div>
             </div>
 
@@ -476,7 +476,7 @@ Team 9: team9
         const SHEET_CONFIG = {
             spreadsheetId: '1ST39xXXjrw-VXILxKP9Bjthn-cJKKna0tGBTbOqdcPg',
             apiKey: 'AIzaSyB0l94qUpcnbVRnWOJgpG0HWtd8TsgfjLI',
-            range: 'Sheet1!A:Q', // adjust sheet name if needed
+            range: 'Sheet1!A:V', // updated range to accommodate 20 questions (A-V)
             updateWebAppUrl: 'https://script.google.com/macros/s/AKfycbzZWdLhAka6FISs2TFM8gmegrYdJbWq4yrdiw-iWvXQ-1cvlosTaV6BQ6fVckeVZbIQIw/exec' // from apps script deployment (NOT your GitHub Pages URL)
         };
         
@@ -486,7 +486,7 @@ Team 9: team9
         let incorrectCounts = {}; // tracks number of incorrect guesses per question
         let guessHistory = {}; // stores history of all guesses per question
         
-        // test questions that show the answer
+        // test questions that show the answer - now 20 questions
         let questions = JSON.parse(localStorage.getItem('estimathonQuestions')) || [
             { id: 1, text: "Test Question 1: The answer is 42", answer: 42 },
             { id: 2, text: "Test Question 2: The answer is 1337", answer: 1337 },
@@ -502,7 +502,12 @@ Team 9: team9
             { id: 12, text: "Test Question 12: The answer is 314", answer: 314 },
             { id: 13, text: "Test Question 13: The answer is 88", answer: 88 },
             { id: 14, text: "Test Question 14: The answer is 1776", answer: 1776 },
-            { id: 15, text: "Test Question 15: The answer is 404", answer: 404 }
+            { id: 15, text: "Test Question 15: The answer is 404", answer: 404 },
+            { id: 16, text: "Test Question 16: The answer is 8675", answer: 8675 },
+            { id: 17, text: "Test Question 17: The answer is 271828", answer: 271828 },
+            { id: 18, text: "Test Question 18: The answer is 1729", answer: 1729 },
+            { id: 19, text: "Test Question 19: The answer is 2025", answer: 2025 },
+            { id: 20, text: "Test Question 20: The answer is 9801", answer: 9801 }
         ];
 
         function saveQuestions() {
@@ -833,10 +838,10 @@ Team 9: team9
             }
             
             // calculate values for each question
-            const values = new Array(15).fill(''); // empty array for 15 questions
+            const values = new Array(20).fill(''); // empty array for 20 questions
             
             questions.forEach((q, index) => {
-                if (index < 15) {
+                if (index < 20) {
                     if (submittedGuesses[q.id]) {
                         if (submittedGuesses[q.id].isCorrect) {
                             // correct answer: send the ratio
