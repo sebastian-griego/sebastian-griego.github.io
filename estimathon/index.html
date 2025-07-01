@@ -340,7 +340,7 @@
         <!-- Participant Section -->
         <div id="participantSection">
             <div class="instructions">
-                <strong>Instructions:</strong> Select your team (0-9) and enter your team code to begin. You have 60 total guesses across all 15 questions. 
+                <strong>Instructions:</strong> Select your team (0-9) and enter your team code to begin. You have 60 total guesses across all 20 questions. 
                 For each question, provide a range [min, max] that you think contains the answer.
                 Each submission or update uses one of your 60 guesses. Scores are automatically sent to the spreadsheet.
                 <br><br>
@@ -379,11 +379,11 @@
                 🎯 Score: <span id="scoreValue">327680</span>
                 <div class="score-summary">
                     <span>Correct: <span id="correctGuesses">0</span></span>
-                    <span>Unanswered: <span id="mistakes">15</span></span>
+                    <span>Unanswered: <span id="mistakes">20</span></span>
                     <span>Guesses used: <span id="guessesUsed">0</span></span>
                 </div>
                 <div class="score-formula">
-                    (10 + <span id="rangeSum">0</span>) × 2^<span id="mistakeCount">15</span> = <span id="finalScore">327680</span>
+                    (10 + <span id="rangeSum">0</span>) × 2^<span id="mistakeCount">20</span> = <span id="finalScore">327680</span>
                 </div>
             </div>
 
@@ -502,8 +502,12 @@ Team 9: team9
             { id: 12, text: "Test Question 12: The answer is 314", answer: 314 },
             { id: 13, text: "Test Question 13: The answer is 88", answer: 88 },
             { id: 14, text: "Test Question 14: The answer is 1776", answer: 1776 },
-            { id: 15, text: "Test Question 15: The answer is 404", answer: 404 }
-        ];
+            { id: 15, text: "Test Question 15: The answer is 404", answer: 404 },
+            { id: 16, text: "Test Question 16: The answer is 808", answer: 808 },
+            { id: 17, text: "Test Question 17: The answer is 69420", answer: 69420 },
+            { id: 18, text: "Test Question 18: The answer is 987", answer: 987 },
+            { id: 19, text: "Test Question 19: The answer is 555", answer: 555 },
+            { id: 20, text: "Test Question 20: The answer is 2020", answer: 2020 }
 
         function saveQuestions() {
             localStorage.setItem('estimathonQuestions', JSON.stringify(questions));
@@ -833,10 +837,10 @@ Team 9: team9
             }
             
             // calculate values for each question
-            const values = new Array(15).fill(''); // empty array for 15 questions
+            const values = new Array(20).fill(''); // empty array for 20 questions
             
             questions.forEach((q, index) => {
-                if (index < 15) {
+                if (index < 20) {
                     if (submittedGuesses[q.id]) {
                         if (submittedGuesses[q.id].isCorrect) {
                             // correct answer: send the ratio
