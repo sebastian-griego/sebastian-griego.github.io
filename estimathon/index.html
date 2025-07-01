@@ -340,9 +340,9 @@
         <!-- Participant Section -->
         <div id="participantSection">
             <div class="instructions">
-                <strong>Instructions:</strong> Select your team (0-9) and enter your team code to begin. You have 45 total guesses across all 15 questions. 
+                <strong>Instructions:</strong> Select your team (0-9) and enter your team code to begin. You have 60 total guesses across all 15 questions. 
                 For each question, provide a range [min, max] that you think contains the answer.
-                Each submission or update uses one of your 45 guesses. Scores are automatically sent to the spreadsheet.
+                Each submission or update uses one of your 60 guesses. Scores are automatically sent to the spreadsheet.
                 <br><br>
                 <strong>Scoring:</strong> Lower scores are better! 
                 \( \text{Score} = \left(10 + \sum_{[a_i,b_i] \in \text{Good Intervals}} \left\lceil \frac{b_i}{a_i} \right\rceil \right) \times 2^{\# \text{ incorrect questions}} \)
@@ -372,7 +372,7 @@
             </div>
 
             <div class="guess-tracker" id="guessTracker">
-                Guesses Remaining: <span id="guessesLeft">45</span> / 45
+                Guesses Remaining: <span id="guessesLeft">60</span> / 60
             </div>
 
             <div id="totalScore" class="total-score">
@@ -441,7 +441,7 @@ Team 9: team9 </pre>
 
     <script>
         const ADMIN_PASSWORD = 'estimathon123';
-        const MAX_TOTAL_GUESSES = 45;
+        const MAX_TOTAL_GUESSES = 60;
         
         // team codes - change these to whatever you want
         const TEAM_CODES = {
@@ -460,7 +460,7 @@ Team 9: team9 </pre>
         // admin can update team codes here or in the code above
         const teamCodesInfo = `
 Team Codes (change in code):
-Team 0: team0
+Team 0: team0   
 Team 1: team1
 Team 2: team2
 Team 3: team3
@@ -647,7 +647,7 @@ Team 9: team9
             
             // check if we have guesses left (updates now cost a guess too)
             if (totalGuessesUsed >= MAX_TOTAL_GUESSES) {
-                alert('You have used all 45 guesses!');
+                alert('You have used all 60 guesses!');
                 return;
             }
             
