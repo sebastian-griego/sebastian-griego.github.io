@@ -412,17 +412,17 @@
                 
                 <div id="adminControls" class="hidden">
                     <h3 style="margin: 20px 0;">Team Codes</h3>
-                    <pre style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; font-size: 0.9em;">Team 0: team0
-Team 1: team1
-Team 2: team2
-Team 3: team3
-Team 4: team4
-Team 5: team5
-Team 6: team6
-Team 7: team7
-Team 8: team8
-Team 9: team9
-Team 10: team10</pre>
+                    <pre style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; font-size: 0.9em;">Team 0: steven
+Team 1: dodecahedron
+Team 2: taurus
+Team 3: gamma
+Team 4: angelisland
+Team 5: slingsby
+Team 6: team2
+Team 7: chalant
+Team 8: headcounts
+Team 9: lattice
+Team 10: gocounselors</pre>
                     
                     <h3 style="margin: 20px 0;">Add/Edit Questions</h3>
                     
@@ -442,38 +442,38 @@ Team 10: team10</pre>
     <div class="admin-toggle" onclick="toggleAdmin()">⚙️</div>
 
     <script>
-        const ADMIN_PASSWORD = 'estimathon123';
+        const ADMIN_PASSWORD = 'estimathon123123';
         const MAX_TOTAL_GUESSES = 60;
         
         // team codes - change these to whatever you want
         const TEAM_CODES = {
-            'Team 0': 'team0',
-            'Team 1': 'team1',
-            'Team 2': 'team2',
-            'Team 3': 'team3',
-            'Team 4': 'team4',
-            'Team 5': 'team5',
-            'Team 6': 'team6',
-            'Team 7': 'team7',
-            'Team 8': 'team8',
-            'Team 9': 'team9',
-            'Team 10': 'team10'
+            'Team 0': 'steven',
+            'Team 1': 'dodecahedron',
+            'Team 2': 'taurus',
+            'Team 3': 'gamma',
+            'Team 4': 'angelisland',
+            'Team 5': 'slingsby',
+            'Team 6': 'team2',
+            'Team 7': 'chalant',
+            'Team 8': 'headcounts',
+            'Team 9': 'lattice',
+            'Team 10': 'gocounselors'
         };
         
         // admin can update team codes here or in the code above
         const teamCodesInfo = `
 Team Codes (change in code):
-Team 0: team0   
-Team 1: team1
-Team 2: team2
-Team 3: team3
-Team 4: team4
-Team 5: team5
-Team 6: team6
-Team 7: team7
-Team 8: team8
-Team 9: team9
-Team 10: team10
+Team 0: steven
+Team 1: dodecahedron
+Team 2: taurus
+Team 3: gamma
+Team 4: angelisland
+Team 5: slingsby
+Team 6: team2
+Team 7: chalant
+Team 8: headcounts
+Team 9: lattice
+Team 10: gocounselors
         `;
         
         // google sheets configuration
@@ -481,7 +481,7 @@ Team 10: team10
             spreadsheetId: '1ST39xXXjrw-VXILxKP9Bjthn-cJKKna0tGBTbOqdcPg',
             apiKey: 'AIzaSyB0l94qUpcnbVRnWOJgpG0HWtd8TsgfjLI',
             range: 'Sheet1!A:V', // updated range to accommodate 20 questions (A-V)
-            updateWebAppUrl: 'https://script.google.com/macros/s/AKfycbzZWdLhAka6FISs2TFM8gmegrYdJbWq4yrdiw-iWvXQ-1cvlosTaV6BQ6fVckeVZbIQIw/exec' // from apps script deployment (NOT your GitHub Pages URL)
+            updateWebAppUrl: 'https://script.google.com/macros/s/AKfycbyEMmLty2mLh1dbfLAsxJFFR69qlhy7_KG2uemvaDvcjwHbv4vSZMV880aoCr5j-l0ong/exec' // from apps script deployment (NOT your GitHub Pages URL)
         };
         
         // tracking guesses per question
@@ -492,26 +492,26 @@ Team 10: team10
         
         // test questions that show the answer - now 20 questions
         let questions = JSON.parse(localStorage.getItem('estimathonQuestions')) || [
-            { id: 1, text: "Test Question 1: The answer is 42", answer: 42 },
-            { id: 2, text: "Test Question 2: The answer is 1337", answer: 1337 },
-            { id: 3, text: "Test Question 3: The answer is 256", answer: 256 },
-            { id: 4, text: "Test Question 4: The answer is 999", answer: 999 },
-            { id: 5, text: "Test Question 5: The answer is 12345", answer: 12345 },
-            { id: 6, text: "Test Question 6: The answer is 77", answer: 77 },
-            { id: 7, text: "Test Question 7: The answer is 500", answer: 500 },
-            { id: 8, text: "Test Question 8: The answer is 2048", answer: 2048 },
-            { id: 9, text: "Test Question 9: The answer is 365", answer: 365 },
-            { id: 10, text: "Test Question 10: The answer is 60", answer: 60 },
-            { id: 11, text: "Test Question 11: The answer is 1000000", answer: 1000000 },
-            { id: 12, text: "Test Question 12: The answer is 314", answer: 314 },
-            { id: 13, text: "Test Question 13: The answer is 88", answer: 88 },
-            { id: 14, text: "Test Question 14: The answer is 1776", answer: 1776 },
-            { id: 15, text: "Test Question 15: The answer is 404", answer: 404 },
-            { id: 16, text: "Test Question 16: The answer is 8675", answer: 8675 },
-            { id: 17, text: "Test Question 17: The answer is 271828", answer: 271828 },
-            { id: 18, text: "Test Question 18: The answer is 1729", answer: 1729 },
-            { id: 19, text: "Test Question 19: The answer is 2025", answer: 2025 },
-            { id: 20, text: "Test Question 20: The answer is 9801", answer: 9801 }
+            { id: 1, text: "Extreme Folding", answer: 20 },
+            { id: 2, text: "Too Much Number", answer: 2466 },
+            { id: 3, text: "Chris' Scripts", answer: 277746 },
+            { id: 4, text: "Cursed Inboxes", answer: 376283964 },
+            { id: 5, text: "Mini Solar System", answer: 448 },
+            { id: 6, text: "GOAT Racers", answer: 14813925.7344 },
+            { id: 7, text: "Sluggers", answer: 7.6503e14 },
+            { id: 8, text: "Taylor's Bible", answer: 69934528 },
+            { id: 9, text: "Sweet Sales", answer: 20714400000 },
+            { id: 10, text: "Mountaineering", answer: 6.19768610e22 },
+            { id: 11, text: "Two Power-full", answer: 34405 },
+            { id: 12, text: "No Fear Shakespeare", answer: 33038919900 },
+            { id: 13, text: "Dumbit and Foole", answer: 35773 },
+            { id: 14, text: "Sans non-San's", answer: 5680680 },
+            { id: 15, text: "JT's d/dt", answer: 2.187e11 },
+            { id: 16, text: "FLOPs Across Time", answer: 6.16862e15 },
+            { id: 17, text: "Steven & Seabass' Subway Surfin'", answer: 229280},
+            { id: 18, text: "Celestial Chemistry", answer: 2.631e27 },
+            { id: 19, text: "Counselor Colleges", answer: 967309.5637 },
+            { id: 20, text: "SUMaC Scrabble Scramble", answer: 1.4418e13 }
         ];
 
         function saveQuestions() {
