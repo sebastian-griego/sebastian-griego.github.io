@@ -888,8 +888,8 @@ Team 10: gocounselors
 
         function isTeamLoggedIn() {
             const teamName = getTeamName();
-            const savedTeam = localStorage.getItem('teamName');
-            const savedCode = localStorage.getItem('teamCode');
+            const savedTeam = sessionStorage.getItem('teamName');
+            const savedCode = sessionStorage.getItem('teamCode');
             
             return teamName && savedTeam === teamName && savedCode === TEAM_CODES[teamName];
         }
@@ -909,7 +909,7 @@ Team 10: gocounselors
             }
             
             // check if switching teams
-            const currentTeamData = localStorage.getItem('currentTeamData');
+            const currentTeamData = sessionStorage.getItem('currentTeamData');
             if (currentTeamData !== teamName) {
                 // switching teams - clear all previous data
                 submittedGuesses = {};
@@ -918,9 +918,9 @@ Team 10: gocounselors
                 totalGuessesUsed = 0;
             }
             
-            localStorage.setItem('teamName', teamName);
-            localStorage.setItem('teamCode', teamCode);
-            localStorage.setItem('currentTeamData', teamName);
+            sessionStorage.setItem('teamName', teamName);
+            sessionStorage.setItem('teamCode', teamCode);
+            sessionStorage.setItem('currentTeamData', teamName);
             alert('Logged in successfully!');
             
             // show logout button, hide login elements
@@ -940,9 +940,9 @@ Team 10: gocounselors
         }
         
         function logout() {
-            localStorage.removeItem('teamName');
-            localStorage.removeItem('teamCode');
-            localStorage.removeItem('currentTeamData');
+            sessionStorage.removeItem('teamName');
+            sessionStorage.removeItem('teamCode');
+            sessionStorage.removeItem('currentTeamData');
             
             // reset UI
             document.getElementById('teamName').value = '';
@@ -970,8 +970,8 @@ Team 10: gocounselors
         calculateTotalScore();
         
         // load team name if saved and still valid
-        const savedTeamName = localStorage.getItem('teamName');
-        const savedCode = localStorage.getItem('teamCode');
+        const savedTeamName = sessionStorage.getItem('teamName');
+        const savedCode = sessionStorage.getItem('teamCode');
         if (savedTeamName && savedCode && TEAM_CODES[savedTeamName] === savedCode) {
             document.getElementById('teamName').value = savedTeamName;
             document.getElementById('teamCode').value = savedCode;
@@ -983,8 +983,8 @@ Team 10: gocounselors
             document.getElementById('logoutBtn').style.display = 'inline-block';
         } else {
             // clear invalid login
-            localStorage.removeItem('teamName');
-            localStorage.removeItem('teamCode');
+            sessionStorage.removeItem('teamName');
+            sessionStorage.removeItem('teamCode');
         }
     </script>
 </body>
