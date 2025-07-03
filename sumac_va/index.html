@@ -63,7 +63,9 @@
             <!-- Controls -->
             <div id="controls" class="flex flex-wrap justify-center gap-3 mb-8 fade-in">
                 <button id="shuffle-btn" class="bg-green-600 hover:bg-green-500 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition-all duration-150 ease-in-out hover:scale-105">🔀 Shuffle Cycle</button>
+                <button id="set-target-btn" class="bg-sky-600 hover:bg-sky-500 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition-all duration-150 ease-in-out hover:scale-105">🎯 Set Target</button>
                 <button id="kill-btn" class="bg-rose-600 hover:bg-rose-500 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition-all duration-150 ease-in-out hover:scale-105">💀 Record Kill</button>
+                <button id="undo-kill-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition-all duration-150 ease-in-out hover:scale-105">↩️ Undo Kill</button>
                 <button id="word-btn" class="bg-amber-500 hover:bg-amber-400 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition-all duration-150 ease-in-out hover:scale-105">🎲 New Word</button>
                 <button id="reset-btn" class="bg-slate-600 hover:bg-slate-500 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition-all duration-150 ease-in-out hover:scale-105">🔄 Reset Game</button>
             </div>
@@ -107,21 +109,16 @@
 
         // --- GLOBAL VARIABLES & CONFIG ---
 
-        // These variables are provided by the environment. Do not change them.
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-verbal-assassins';
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // Firebase services
         let app, db, auth;
         let userId = null;
-        let gameUnsubscribe = null; // To detach the listener later
-
-        // Game state (local cache, always updated by Firestore)
+        let gameUnsubscribe = null;
         let gameState = {};
-        let commonWords = []; // Will be populated from CSV
+        let commonWords = [];
 
-        // DOM Elements
         const loadingEl = document.getElementById('loading');
         const gameContentEl = document.getElementById('game-content');
         const userInfoEl = document.getElementById('user-info');
@@ -131,16 +128,20 @@
         // --- INITIALIZATION ---
 
         async function main() {
-            // Load words from CSV before doing anything else
             await loadWordList(); 
 
             try {
-                // Initialize Firebase
+                // **FIX:** Check for a valid Firebase config before initializing
+                if (!firebaseConfig || !firebaseConfig.projectId) {
+                    console.error("Firebase config is missing or invalid.", firebaseConfig);
+                    loadingEl.innerHTML = `<p class="text-lg text-red-400">Error: Game configuration is missing.</p><p class="text-sm text-slate-500">Could not connect to the backend service.</p>`;
+                    return; // Stop execution if config is bad
+                }
+
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
 
-                // Listen for authentication state changes
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         userId = user.uid;
@@ -153,16 +154,14 @@
                     }
                 });
 
-                // Sign in the user
                 if (initialAuthToken) {
                     await signInWithCustomToken(auth, initialAuthToken);
                 } else {
                     await signInAnonymously(auth);
                 }
-
             } catch (error) {
                 console.error("Firebase Initialization Error:", error);
-                loadingEl.textContent = "Error: Could not connect to the game service.";
+                loadingEl.innerHTML = `<p class="text-lg text-red-400">Error: Could not connect to the game service.</p><p class="text-sm text-slate-500">${error.message}</p>`;
             }
         }
         
@@ -178,7 +177,6 @@
                 if (docSnap.exists()) {
                     gameState = docSnap.data();
                 } else {
-                    // If the document doesn't exist, create the initial game state
                     gameState = getInitialGameState();
                     setDoc(gameDocRef, gameState);
                 }
@@ -195,17 +193,14 @@
         function updateDisplay() {
             if (!gameState) return;
 
-            // Update stats
             const alivePlayers = gameState.players ? gameState.players.filter(p => p.alive) : [];
             document.getElementById('players-alive').textContent = alivePlayers.length;
             document.getElementById('players-dead').textContent = (gameState.players?.length || 0) - alivePlayers.length;
             document.getElementById('total-kills').textContent = gameState.killHistory?.length || 0;
 
-            // Update player list
             const playerList = document.getElementById('player-list');
             playerList.innerHTML = '';
             if (gameState.players && gameState.players.length > 0) {
-                // Sort players: alive first, then alphabetically
                 const sortedPlayers = [...gameState.players].sort((a, b) => {
                     if (a.alive && !b.alive) return -1;
                     if (!a.alive && b.alive) return 1;
@@ -230,7 +225,6 @@
                 playerList.innerHTML = `<p class="text-slate-500 text-center py-4">Game not initialized. Click Reset Game.</p>`;
             }
 
-            // Update kill history
             const killHistoryEl = document.getElementById('kill-history');
             killHistoryEl.innerHTML = '';
             if (gameState.killHistory && gameState.killHistory.length > 0) {
@@ -262,7 +256,6 @@
             }
         }
         
-        // Shuffle the cycle
         document.getElementById('shuffle-btn').addEventListener('click', () => {
             let activePlayers = gameState.players.filter(p => p.alive);
             if (activePlayers.length < 2) {
@@ -291,7 +284,6 @@
             updateFirestoreState(newState);
         });
 
-        // Reset the game
         document.getElementById('reset-btn').addEventListener('click', () => {
             showModal(
                 'Confirm Reset',
@@ -333,7 +325,6 @@
             }
         });
 
-        // Record Kill Modal
         document.getElementById('kill-btn').addEventListener('click', () => {
             const alivePlayers = gameState.players.filter(p => p.alive && p.target);
             if (alivePlayers.length < 2) {
@@ -382,7 +373,6 @@
             };
         });
         
-        // New Word Modal
         document.getElementById('word-btn').addEventListener('click', () => {
             const alivePlayers = gameState.players.filter(p => p.alive);
             const options = alivePlayers.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
@@ -404,6 +394,116 @@
                 const player = newPlayersState.find(p => p.name === playerName);
                 player.word = getWordList()[Math.floor(Math.random() * getWordList().length)];
                 
+                const newState = { ...gameState, players: newPlayersState };
+                updateFirestoreState(newState);
+                closeModal();
+            };
+        });
+
+        document.getElementById('undo-kill-btn').addEventListener('click', () => {
+            if (!gameState.killHistory || gameState.killHistory.length === 0) {
+                alert("There are no kills to undo.");
+                return;
+            }
+            
+            const options = gameState.killHistory.map((kill, index) => 
+                `<option value="${index}">${kill.killer} → ${kill.victim} (${kill.timestamp})</option>`
+            ).join('');
+
+            showModal(
+                'Undo a Kill',
+                `<label for="undo-select" class="block mb-2 text-slate-400">Select kill to remove:</label>
+                 <select id="undo-select" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2">${options}</select>`,
+                [
+                    `<button id="cancel-btn" class="bg-slate-600 hover:bg-slate-500 font-semibold py-2 px-4 rounded-lg">Cancel</button>`,
+                    `<button id="confirm-undo-btn" class="bg-indigo-600 hover:bg-indigo-500 font-semibold py-2 px-4 rounded-lg">Undo Selected Kill</button>`
+                ]
+            );
+
+            document.getElementById('cancel-btn').onclick = closeModal;
+            document.getElementById('confirm-undo-btn').onclick = () => {
+                const killIndexToUndo = parseInt(document.getElementById('undo-select').value);
+                
+                // Create a new history without the undone kill
+                const newKillHistory = gameState.killHistory.filter((_, index) => index !== killIndexToUndo);
+
+                // Start from a fresh slate
+                let newPlayersState = getInitialGameState().players;
+
+                // Re-apply all the remaining kills in order
+                newKillHistory.forEach(kill => {
+                    const killer = newPlayersState.find(p => p.name === kill.killer);
+                    const victim = newPlayersState.find(p => p.name === kill.victim);
+                    if (killer && victim && victim.alive) {
+                        victim.alive = false;
+                        killer.target = victim.target;
+                        killer.word = kill.word; // Use the word from the history for consistency
+                    }
+                });
+
+                const newState = { ...gameState, players: newPlayersState, killHistory: newKillHistory };
+                updateFirestoreState(newState);
+                closeModal();
+            };
+        });
+
+        document.getElementById('set-target-btn').addEventListener('click', () => {
+            const alivePlayers = gameState.players.filter(p => p.alive);
+            if (alivePlayers.length < 2) {
+                alert("You need at least two living players to set a target.");
+                return;
+            }
+
+            const assassinOptions = alivePlayers.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+
+            showModal(
+                'Set a Target',
+                `<div class="space-y-4">
+                    <div>
+                        <label for="assassin-select" class="block mb-2 text-slate-400">Assassin:</label>
+                        <select id="assassin-select" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2">${assassinOptions}</select>
+                    </div>
+                    <div>
+                        <label for="target-select" class="block mb-2 text-slate-400">Target:</label>
+                        <select id="target-select" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2"></select>
+                    </div>
+                 </div>`,
+                [
+                    `<button id="cancel-btn" class="bg-slate-600 hover:bg-slate-500 font-semibold py-2 px-4 rounded-lg">Cancel</button>`,
+                    `<button id="confirm-set-target-btn" class="bg-sky-600 hover:bg-sky-500 font-semibold py-2 px-4 rounded-lg">Confirm Target</button>`
+                ]
+            );
+
+            const assassinSelect = document.getElementById('assassin-select');
+            const targetSelect = document.getElementById('target-select');
+
+            function updateTargetOptions() {
+                const selectedAssassinName = assassinSelect.value;
+                const targetOptions = alivePlayers
+                    .filter(p => p.name !== selectedAssassinName)
+                    .map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+                targetSelect.innerHTML = targetOptions;
+            }
+
+            assassinSelect.onchange = updateTargetOptions;
+            updateTargetOptions(); // Initial population
+
+            document.getElementById('cancel-btn').onclick = closeModal;
+            document.getElementById('confirm-set-target-btn').onclick = () => {
+                const assassinName = assassinSelect.value;
+                const targetName = targetSelect.value;
+
+                if (!assassinName || !targetName) {
+                    alert("Please select both an assassin and a target.");
+                    return;
+                }
+
+                const newPlayersState = JSON.parse(JSON.stringify(gameState.players));
+                const assassin = newPlayersState.find(p => p.name === assassinName);
+                
+                assassin.target = targetName;
+                assassin.word = getWordList()[Math.floor(Math.random() * getWordList().length)];
+
                 const newState = { ...gameState, players: newPlayersState };
                 updateFirestoreState(newState);
                 closeModal();
@@ -444,7 +544,6 @@
                 const lines = csvContent.split(/\r?\n/);
                 const words = [];
                 
-                // Use the same range as the original code: lines 501 to 3001
                 for (let i = 501; i <= 3001 && i < lines.length; i++) {
                     const word = lines[i].replace(/\r/g, '').trim();
                     if (word) {
@@ -455,7 +554,6 @@
                 console.log(`Successfully loaded ${commonWords.length} words from CSV.`);
             } catch (error) {
                 console.warn('Could not load CSV file. Using fallback word list.', error);
-                // Fallback to a hardcoded list if the CSV is not found
                 commonWords = [
                     'doctor', 'wall', 'patient', 'worker', 'news', 'test', 'movie', 'certain',
                     'north', 'love', 'personal', 'open', 'support', 'simply', 'third',
