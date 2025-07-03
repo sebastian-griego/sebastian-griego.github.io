@@ -371,7 +371,6 @@
         }
         
         // load word list from CSV file
-    </script>
         async function loadWordList() {
             try {
                 // fetch the csv from same directory as the html file
@@ -490,6 +489,12 @@
             
             if (!killer) return;
             
+            // save current state before making changes
+            gameStates.push({
+                players: JSON.parse(JSON.stringify(players)),
+                killHistory: JSON.parse(JSON.stringify(killHistory))
+            });
+            
             // find the victim
             const victim = players.find(p => p.name === killer.target);
             
@@ -501,17 +506,13 @@
                 timestamp: new Date().toLocaleTimeString()
             });
             
-            // mutate state
-            killer.target = victim.target;
+            // killer inherits victim's target  
+            killer.target = victim.target; // this should already be a string
             killer.targetIndex = victim.targetIndex;
-            killer.word = getRandomWord();
-            victim.alive = false;
+            killer.word = getRandomWord(); // new word for killer
             
-            /* 👉 snapshot NOW – this represents the state *after* the kill */
-            gameStates.push({
-                players: JSON.parse(JSON.stringify(players)),
-                killHistory: JSON.parse(JSON.stringify(killHistory))
-            });
+            // mark victim as dead
+            victim.alive = false;
             
             closeModal('kill-modal');
             updateDisplay();
