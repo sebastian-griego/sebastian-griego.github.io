@@ -276,7 +276,7 @@
             <button class="btn-success" onclick="shuffleCycle()">🔀 Shuffle Cycle</button>
             <button class="btn-danger" onclick="showKillModal()">💀 Record Kill</button>
             <button class="btn-warning" onclick="showWordModal()">🎲 New Word</button>
-            <button class="btn-primary" onclick="undoLastKill()">↩️ Undo Last Kill</button>
+            <button class="btn-primary" onclick="showUndoModal()">↩️ Undo Kill</button>
         </div>
         
         <div class="stats">
@@ -333,24 +333,37 @@
         </div>
     </div>
     
+    <!-- Undo Modal -->
+    <div id="undo-modal" class="modal">
+        <div class="modal-content">
+            <h3>Undo Kill</h3>
+            <label>Select kill to undo:</label>
+            <select id="undo-select" size="10" style="height: 200px;"></select>
+            <div class="modal-buttons">
+                <button class="btn-primary" onclick="confirmUndo()">Undo Selected</button>
+                <button onclick="closeModal('undo-modal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
     <script>
         // game state - all in memory as requested
         let players = [];
         let killHistory = [];
-        let backupState = null;
+        let gameStates = []; // store all game states for undo functionality
         let commonWords = [];
         
-        // initialize with specific player names
+        // initialize with 40 players
         async function initializePlayers() {
             // create array of player names
             const playerNames = [
                 'João', 'Cyrus', 'Ali', 'Adriani', 'Skyler', 'Andy J', 'Keiko', 'Daniel',
-                'Grace', 'Alethea', 'Josie', 'Amanda', 'Doruk Ege', 'Colette', 'Srinivas',
-                'JJ', 'Avery', 'Alexander', 'Sophie', 'Amy', 'Thanh', 'Jessica', 'Audrey',
-                'Ashvant', 'Isaac', 'Jonathan', 'Annabel', 'Tara', 'Rio', 'Allison', 'Lucy',
-                'Jason', 'Brian', 'Andy S', 'Christina', 'Amelie', 'Kevin', 'Sophia', 'Gavin', 'Lisa'
+                'Grace', 'Alethea', 'Josie', 'Amanda', 'Doruk Ege', 'Colette', 'Srinivas', 'JJ',
+                'Avery', 'Alexander', 'Sophie', 'Amy', 'Thanh', 'Jessica', 'Audrey', 'Ashvant',
+                'Isaac', 'Jonathan', 'Annabel', 'Tara', 'Rio', 'Allison', 'Lucy', 'Jason',
+                'Brian', 'Andy S', 'Christina', 'Amelie', 'Kevin', 'Sophia', 'Gavin', 'Lisa'
             ];
-            players = playerNames; // start with specific player names
+            players = playerNames; // start with string array
             
             // load word list (from the CSV if available)
             await loadWordList();
@@ -358,6 +371,7 @@
         }
         
         // load word list from CSV file
+    </script>
         async function loadWordList() {
             try {
                 // fetch the csv from same directory as the html file
@@ -476,11 +490,11 @@
             
             if (!killer) return;
             
-            // save backup for undo
-            backupState = {
+            // save current state before making changes
+            gameStates.push({
                 players: JSON.parse(JSON.stringify(players)),
-                killHistory: [...killHistory]
-            };
+                killHistory: JSON.parse(JSON.stringify(killHistory))
+            });
             
             // find the victim
             const victim = players.find(p => p.name === killer.target);
@@ -531,15 +545,73 @@
             }
         }
         
-        function undoLastKill() {
-            if (backupState) {
-                players = backupState.players;
-                killHistory = backupState.killHistory;
-                backupState = null;
-                updateDisplay();
-            } else {
-                alert('Nothing to undo!');
+        function showUndoModal() {
+            if (gameStates.length === 0) {
+                alert('No kills to undo!');
+                return;
             }
+            
+            const select = document.getElementById('undo-select');
+            select.innerHTML = '';
+            
+            // show the initial state
+            const initialOption = document.createElement('option');
+            initialOption.value = '0';
+            initialOption.textContent = 'Initial State (No Kills)';
+            select.appendChild(initialOption);
+            
+            // show all kill states
+            killHistory.forEach((kill, index) => {
+                const option = document.createElement('option');
+                option.value = index + 1;
+                option.textContent = `After Kill ${index + 1}: ${kill.killer} → ${kill.victim} (${kill.timestamp})`;
+                select.appendChild(option);
+            });
+            
+            // select the most recent state by default
+            select.value = killHistory.length;
+            
+            document.getElementById('undo-modal').style.display = 'flex';
+        }
+        
+        function confirmUndo() {
+            const select = document.getElementById('undo-select');
+            const stateIndex = parseInt(select.value);
+            
+            if (stateIndex === 0) {
+                // restore to initial state (before any kills)
+                if (gameStates.length > 0) {
+                    const initialState = gameStates[0];
+                    players = JSON.parse(JSON.stringify(initialState.players));
+                    // reset everyone to alive since this is before any kills
+                    players.forEach(p => p.alive = true);
+                    killHistory = [];
+                    gameStates = [];
+                }
+            } else {
+                // restore to state after specific kill
+                const targetState = gameStates[stateIndex - 1];
+                players = JSON.parse(JSON.stringify(targetState.players));
+                killHistory = JSON.parse(JSON.stringify(targetState.killHistory));
+                // keep only the game states up to this point
+                gameStates = gameStates.slice(0, stateIndex);
+                
+                // apply all kills up to this point
+                for (let i = 0; i < stateIndex; i++) {
+                    const kill = killHistory[i];
+                    const killer = players.find(p => p.name === kill.killer);
+                    const victim = players.find(p => p.name === kill.victim);
+                    
+                    if (killer && victim) {
+                        killer.target = victim.target;
+                        killer.targetIndex = victim.targetIndex;
+                        victim.alive = false;
+                    }
+                }
+            }
+            
+            closeModal('undo-modal');
+            updateDisplay();
         }
         
         function closeModal(modalId) {
