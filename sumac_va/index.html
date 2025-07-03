@@ -340,14 +340,17 @@
         let backupState = null;
         let commonWords = [];
         
-        // initialize with 40 players
+        // initialize with specific player names
         async function initializePlayers() {
             // create array of player names
-            const playerNames = [];
-            for (let i = 1; i <= 40; i++) {
-                playerNames.push(`Player ${i}`);
-            }
-            players = playerNames; // start with string array
+            const playerNames = [
+                'João', 'Cyrus', 'Ali', 'Adriani', 'Skyler', 'Andy J', 'Keiko', 'Daniel',
+                'Grace', 'Alethea', 'Josie', 'Amanda', 'Doruk Ege', 'Colette', 'Srinivas',
+                'JJ', 'Avery', 'Alexander', 'Sophie', 'Amy', 'Thanh', 'Jessica', 'Audrey',
+                'Ashvant', 'Isaac', 'Jonathan', 'Annabel', 'Tara', 'Rio', 'Allison', 'Lucy',
+                'Jason', 'Brian', 'Andy S', 'Christina', 'Amelie', 'Kevin', 'Sophia', 'Gavin', 'Lisa'
+            ];
+            players = playerNames; // start with specific player names
             
             // load word list (from the CSV if available)
             await loadWordList();
