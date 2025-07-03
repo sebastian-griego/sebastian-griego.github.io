@@ -342,13 +342,13 @@
         
         // initialize with 40 players
         async function initializePlayers() {
-            players = [
-                'João', 'Cyrus', 'Ali', 'Adriani', 'Skyler', 'Andy J', 'Keiko', 'Daniel',
-                'Grace', 'Alethea', 'Josie', 'Amanda', 'Doruk Ege', 'Colette', 'Srinivas',
-                'JJ', 'Avery', 'Alexander', 'Sophie', 'Amy', 'Thanh', 'Jessica', 'Audrey',
-                'Ashvant', 'Isaac', 'Jonathan', 'Annabel', 'Tara', 'Rio', 'Allison', 'Lucy',
-                'Jason', 'Brian', 'Andy S', 'Christina', 'Amelie', 'Kevin', 'Sophia', 'Gavin', 'Lisa'
-            ];
+            // create array of player names
+            const playerNames = [];
+            for (let i = 1; i <= 40; i++) {
+                playerNames.push(`Player ${i}`);
+            }
+            players = playerNames; // start with string array
+            
             // load word list (from the CSV if available)
             await loadWordList();
             shuffleCycle();
@@ -358,36 +358,45 @@
         async function loadWordList() {
             try {
                 // fetch the csv from same directory as the html file
-                const response = await fetch('4000mostcommonenglishwordscsv.csv');
+                const response = await fetch('4000-most-common-english-words-csv.csv');
                 const csvContent = await response.text();
                 
                 // parse csv - it has one column with header
-                const lines = csvContent.split('\n');
+                const lines = csvContent.split(/\r?\n/); // handle both unix and windows line endings
                 commonWords = [];
                 
                 // skip header, get words from line 501 to 3001 (index 500-3000)
                 for (let i = 501; i <= 3001 && i < lines.length; i++) {
-                    const word = lines[i].trim();
-                    if (word) {
+                    // remove any whitespace and carriage returns
+                    const word = lines[i].replace(/\r/g, '').trim();
+                    if (word && word.length > 0) {
                         commonWords.push(word);
                     }
                 }
                 
                 console.log(`Loaded ${commonWords.length} words from CSV`);
+                console.log('Sample words:', commonWords.slice(0, 5)); // show first 5 words for debugging
                 
             } catch (error) {
                 // fallback to hardcoded list if csv not available
-                console.log('CSV not found, using fallback word list:', error);
+                console.log('CSV not found or error parsing, using fallback word list:', error);
+                // these are actual words from around the 500-3000 range in common word lists
                 commonWords = [
-                    'tender', 'occasional', 'retirement', 'regard', 'university', 'shadow',
-                    'substance', 'advance', 'syndrome', 'alter', 'occasionally', 'resolve',
-                    'cook', 'ear', 'outline', 'explode', 'rational', 'graduate', 'victory',
-                    'broken', 'blanket', 'justice', 'significance', 'modest', 'enforcement',
-                    'listener', 'offering', 'schedule', 'compliance', 'loan', 'elbow',
-                    'presentation', 'tea', 'weaken', 'divine', 'quote', 'miracle',
-                    'facilitate', 'reflection', 'clue', 'external', 'monkey', 'pen',
-                    'construct', 'introduction', 'coordinator', 'solid', 'principal',
-                    'piano', 'compensation', 'reject', 'strongly', 'divide', 'supporter'
+                    'doctor', 'wall', 'patient', 'worker', 'news', 'test', 'movie', 'certain',
+                    'north', 'love', 'personal', 'open', 'support', 'simply', 'third',
+                    'technology', 'catch', 'step', 'baby', 'computer', 'type', 'attention',
+                    'draw', 'film', 'republican', 'tree', 'source', 'red', 'nearly',
+                    'organization', 'choose', 'cause', 'hair', 'century', 'evidence', 'window',
+                    'difficult', 'listen', 'soon', 'culture', 'billion', 'chance', 'brother',
+                    'energy', 'period', 'course', 'summer', 'realize', 'hundred', 'available',
+                    'plant', 'likely', 'opportunity', 'term', 'chair', 'protect', 'parent',
+                    'interview', 'yesterday', 'sell', 'fire', 'particularly', 'forget', 'cold',
+                    'represent', 'focus', 'foreign', 'throughout', 'upon', 'agency', 'push',
+                    'nature', 'recently', 'store', 'reduce', 'sound', 'note', 'fine',
+                    'near', 'movement', 'page', 'enter', 'share', 'common', 'poor',
+                    'natural', 'race', 'concern', 'series', 'significant', 'similar', 'language',
+                    'usually', 'response', 'dead', 'rise', 'animal', 'factor', 'decade',
+                    'shoot', 'east', 'save', 'seven', 'artist', 'scene', 'stock', 'career'
                 ];
             }
         }
@@ -396,6 +405,10 @@
             // mimics python random.randrange(1000, 4000) 
             // which means words from index 1000-3999 in the original csv
             // but we're only loading words 500-3000 (the range the user wants)
+            if (commonWords.length === 0) {
+                console.error('No words loaded!');
+                return 'ERROR'; // visible error to help debug
+            }
             return commonWords[Math.floor(Math.random() * commonWords.length)];
         }
         
@@ -405,10 +418,12 @@
                 return;
             }
             
+            // get player names (handle both initial string array and object array)
+            const playerNames = players.map(p => typeof p === 'string' ? p : p.name);
+            
             // create game state
-            const gameState = [];
-            const availableTargets = [...Array(players.length).keys()];
-            const assignments = new Array(players.length);
+            const availableTargets = [...Array(playerNames.length).keys()];
+            const assignments = new Array(playerNames.length);
             
             // create a cycle like in the python code
             let current = 0;
@@ -424,9 +439,9 @@
             assignments[current] = 0; // complete the cycle
             
             // create player objects
-            players = players.map((name, i) => ({
+            players = playerNames.map((name, i) => ({
                 name: name,
-                target: players[assignments[i]],
+                target: playerNames[assignments[i]], // use the name from playerNames array
                 targetIndex: assignments[i],
                 word: getRandomWord(),
                 alive: true
@@ -475,8 +490,8 @@
                 timestamp: new Date().toLocaleTimeString()
             });
             
-            // killer inherits victim's target
-            killer.target = victim.target;
+            // killer inherits victim's target  
+            killer.target = victim.target; // this should already be a string
             killer.targetIndex = victim.targetIndex;
             killer.word = getRandomWord(); // new word for killer
             
