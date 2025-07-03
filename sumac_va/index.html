@@ -104,9 +104,13 @@
     <script type="module">
         // Firebase Imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // --- GLOBAL VARIABLES & CONFIG ---
+        
+        // **FIX:** This line was missing. It's needed for the database path.
+        const appId = 'default-verbal-assassins';
 
         // Your web app's Firebase configuration
         const firebaseConfig = {
@@ -117,8 +121,6 @@
             messagingSenderId: "437614442481",
             appId: "1:437614442481:web:f090082af7324702083650"
         };
-
-
 
         let app, db, auth;
         let userId = null;
@@ -138,13 +140,6 @@
             await loadWordList(); 
 
             try {
-                // **FIX:** Check for a valid Firebase config before initializing
-                if (!firebaseConfig || !firebaseConfig.projectId) {
-                    console.error("Firebase config is missing or invalid.", firebaseConfig);
-                    loadingEl.innerHTML = `<p class="text-lg text-red-400">Error: Game configuration is missing.</p><p class="text-sm text-slate-500">Could not connect to the backend service.</p>`;
-                    return; // Stop execution if config is bad
-                }
-
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
@@ -363,7 +358,7 @@
                 killer.target = victim.target;
                 killer.word = getWordList()[Math.floor(Math.random() * getWordList().length)];
 
-                const newKillHistory = [...gameState.killHistory, {
+                const newKillHistory = [...(gameState.killHistory || []), {
                     killer: killer.name,
                     victim: victim.name,
                     word: killer.word,
