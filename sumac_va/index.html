@@ -108,8 +108,6 @@
         import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- GLOBAL VARIABLES & CONFIG ---
-        
-        // **FIX:** This line was missing. It's needed for the database path.
         const appId = 'default-verbal-assassins';
 
         // Your web app's Firebase configuration
@@ -354,15 +352,23 @@
                     return;
                 }
 
+                // *** NEW: Store the killer's state BEFORE the kill for undo purposes ***
+                const originalKillerTarget = killer.target;
+                const originalKillerWord = killer.word;
+
+                // Apply the kill
                 victim.alive = false;
                 killer.target = victim.target;
                 killer.word = getWordList()[Math.floor(Math.random() * getWordList().length)];
 
+                // Add the kill to history, now with the original state saved
                 const newKillHistory = [...(gameState.killHistory || []), {
                     killer: killer.name,
                     victim: victim.name,
-                    word: killer.word,
-                    timestamp: new Date().toLocaleTimeString()
+                    word: killer.word, // The new word for the killer
+                    timestamp: new Date().toLocaleTimeString(),
+                    originalKillerTarget: originalKillerTarget,
+                    originalKillerWord: originalKillerWord
                 }];
 
                 const newState = { ...gameState, players: newPlayersState, killHistory: newKillHistory };
@@ -421,24 +427,43 @@
             document.getElementById('cancel-btn').onclick = closeModal;
             document.getElementById('confirm-undo-btn').onclick = () => {
                 const killIndexToUndo = parseInt(document.getElementById('undo-select').value);
+                const killToUndo = gameState.killHistory[killIndexToUndo];
+
+                // *** NEW: Smarter undo logic that does not reset the whole game ***
+                if (!killToUndo) {
+                    alert("Could not find the specified kill.");
+                    return;
+                }
                 
-                // Create a new history without the undone kill
+                // Fallback for kills made with the old code that don't have the required info
+                if (killToUndo.originalKillerTarget === undefined) {
+                    alert("This kill was recorded with an older version and cannot be undone precisely. Please reset the game if major changes are needed.");
+                    closeModal();
+                    return;
+                }
+
+                // Create a deep copy of the players to modify
+                const newPlayersState = JSON.parse(JSON.stringify(gameState.players));
+
+                const killer = newPlayersState.find(p => p.name === killToUndo.killer);
+                const victim = newPlayersState.find(p => p.name === killToUndo.victim);
+
+                if (!killer || !victim) {
+                    alert("Could not find the players involved in this kill.");
+                    return;
+                }
+
+                // 1. Revive the victim
+                victim.alive = true;
+
+                // 2. Restore the killer's state to what it was BEFORE the kill
+                killer.target = killToUndo.originalKillerTarget;
+                killer.word = killToUndo.originalKillerWord;
+
+                // 3. Remove the undone kill from the history array
                 const newKillHistory = gameState.killHistory.filter((_, index) => index !== killIndexToUndo);
 
-                // Start from a fresh slate
-                let newPlayersState = getInitialGameState().players;
-
-                // Re-apply all the remaining kills in order
-                newKillHistory.forEach(kill => {
-                    const killer = newPlayersState.find(p => p.name === kill.killer);
-                    const victim = newPlayersState.find(p => p.name === kill.victim);
-                    if (killer && victim && victim.alive) {
-                        victim.alive = false;
-                        killer.target = victim.target;
-                        killer.word = kill.word; // Use the word from the history for consistency
-                    }
-                });
-
+                // 4. Update the game state in Firestore
                 const newState = { ...gameState, players: newPlayersState, killHistory: newKillHistory };
                 updateFirestoreState(newState);
                 closeModal();
