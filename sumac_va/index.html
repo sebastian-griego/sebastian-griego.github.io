@@ -107,13 +107,6 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- GLOBAL VARIABLES & CONFIG ---
-
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-verbal-assassins';
-        // Import the functions you need from the SDKs you need
-        import { initializeApp } from "firebase/app";
-        // TODO: Add SDKs for Firebase products that you want to use
-        // https://firebase.google.com/docs/web/setup#available-libraries
 
         // Your web app's Firebase configuration
         const firebaseConfig = {
@@ -125,8 +118,7 @@
             appId: "1:437614442481:web:f090082af7324702083650"
         };
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
+
 
         let app, db, auth;
         let userId = null;
