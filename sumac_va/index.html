@@ -3,359 +3,416 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verbal Assassins Game</title>
+    <title>Verbal Assassins - Multiplayer</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0a0a0a;
-            color: #e0e0e0;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            font-family: 'Inter', sans-serif;
         }
-        
-        .container {
-            max-width: 1200px;
-            width: 100%;
-            background: #1a1a1a;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        /* Custom scrollbar for better aesthetics in dark mode */
+        ::-webkit-scrollbar {
+            width: 8px;
         }
-        
-        h1 {
-            text-align: center;
-            font-size: 3em;
-            margin-bottom: 40px;
-            background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 40px rgba(255, 107, 107, 0.3);
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
         }
-        
-        .controls {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 40px;
-            flex-wrap: wrap;
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
         }
-        
-        button {
-            padding: 12px 24px;
-            font-size: 16px;
-            font-weight: 600;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
         }
-        
-        button:before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
+        /* Simple animation for elements fading in */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        
-        button:hover:before {
-            width: 300px;
-            height: 300px;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        .btn-danger {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-        }
-        
-        .btn-success {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-        }
-        
-        .btn-warning {
-            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-            color: #333;
-        }
-        
-        .grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 30px;
-            margin-bottom: 30px;
-        }
-        
-        .section {
-            background: #262626;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-        
-        .section h2 {
-            font-size: 1.8em;
-            margin-bottom: 20px;
-            color: #4ecdc4;
-        }
-        
-        .player-list {
-            display: grid;
-            gap: 15px;
-        }
-        
-        .player-card {
-            background: #333;
-            border-radius: 10px;
-            padding: 15px;
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 15px;
-            align-items: center;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .player-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(78, 205, 196, 0.1);
-        }
-        
-        .player-card.eliminated {
-            opacity: 0.5;
-            background: #2a2a2a;
-        }
-        
-        .player-name {
-            font-weight: bold;
-            color: #ff6b6b;
-        }
-        
-        .target {
-            color: #4ecdc4;
-        }
-        
-        .word {
-            font-family: monospace;
-            background: #444;
-            padding: 5px 10px;
-            border-radius: 5px;
-            text-align: center;
-        }
-        
-        .kill-entry {
-            padding: 10px;
-            background: #2a2a2a;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            animation: slideIn 0.3s ease;
-        }
-        
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .modal-content {
-            background: #262626;
-            padding: 30px;
-            border-radius: 15px;
-            max-width: 400px;
-            width: 90%;
-            animation: modalPop 0.3s ease;
-        }
-        
-        @keyframes modalPop {
-            from {
-                opacity: 0;
-                transform: scale(0.9);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-        
-        .modal h3 {
-            margin-bottom: 20px;
-            color: #4ecdc4;
-        }
-        
-        select {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 20px;
-            background: #333;
-            border: 1px solid #444;
-            color: #e0e0e0;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-        }
-        
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .stat-card {
-            background: #333;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-size: 2em;
-            font-weight: bold;
-            color: #4ecdc4;
-        }
-        
-        .stat-label {
-            color: #888;
-            font-size: 0.9em;
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>🎯 Verbal Assassins</h1>
-        
-        <div class="controls">
-            <button class="btn-primary" onclick="initializePlayers()">Initialize Players</button>
-            <button class="btn-success" onclick="shuffleCycle()">🔀 Shuffle Cycle</button>
-            <button class="btn-danger" onclick="showKillModal()">💀 Record Kill</button>
-            <button class="btn-warning" onclick="showWordModal()">🎲 New Word</button>
-            <button class="btn-primary" onclick="showUndoModal()">↩️ Undo Kill</button>
+<body class="bg-slate-900 text-slate-200 antialiased">
+
+    <div id="app" class="container mx-auto p-4 md:p-8 max-w-7xl">
+
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-rose-400 via-fuchsia-500 to-indigo-500 bg-clip-text text-transparent pb-2">
+                Verbal Assassins
+            </h1>
+            <p class="text-slate-400">A real-time multiplayer assassination game for our group.</p>
+            <div id="user-info" class="mt-4 text-xs text-slate-500 bg-slate-800 rounded-md p-2 inline-block">
+                Connecting...
+            </div>
+        </header>
+
+        <!-- Loading State -->
+        <div id="loading" class="text-center py-10">
+            <p class="text-lg text-slate-400">Loading Game State...</p>
         </div>
-        
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-value" id="players-alive">0</div>
-                <div class="stat-label">Players Alive</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="players-dead">0</div>
-                <div class="stat-label">Eliminated</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="total-kills">0</div>
-                <div class="stat-label">Total Kills</div>
-            </div>
-        </div>
-        
-        <div class="grid">
-            <div class="section">
-                <h2>Active Players</h2>
-                <div id="player-list" class="player-list"></div>
+
+        <!-- Game Content (hidden until loaded) -->
+        <main id="game-content" class="hidden">
+            <!-- Controls -->
+            <div id="controls" class="flex flex-wrap justify-center gap-3 mb-8 fade-in">
+                <button id="shuffle-btn" class="bg-green-600 hover:bg-green-500 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition-all duration-150 ease-in-out hover:scale-105">🔀 Shuffle Cycle</button>
+                <button id="kill-btn" class="bg-rose-600 hover:bg-rose-500 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition-all duration-150 ease-in-out hover:scale-105">💀 Record Kill</button>
+                <button id="word-btn" class="bg-amber-500 hover:bg-amber-400 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition-all duration-150 ease-in-out hover:scale-105">🎲 New Word</button>
+                <button id="reset-btn" class="bg-slate-600 hover:bg-slate-500 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition-all duration-150 ease-in-out hover:scale-105">🔄 Reset Game</button>
             </div>
             
-            <div class="section">
-                <h2>Kill History</h2>
-                <div id="kill-history"></div>
+            <!-- Stats -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 fade-in">
+                <div class="bg-slate-800 p-4 rounded-xl text-center shadow-lg"><div id="players-alive" class="text-3xl font-bold text-green-400">0</div><div class="text-slate-400">Players Alive</div></div>
+                <div class="bg-slate-800 p-4 rounded-xl text-center shadow-lg"><div id="players-dead" class="text-3xl font-bold text-rose-400">0</div><div class="text-slate-400">Eliminated</div></div>
+                <div class="bg-slate-800 p-4 rounded-xl text-center shadow-lg"><div id="total-kills" class="text-3xl font-bold text-sky-400">0</div><div class="text-slate-400">Total Kills</div></div>
             </div>
+
+            <!-- Main Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Players Section -->
+                <div class="lg:col-span-2 bg-slate-800 p-6 rounded-xl shadow-lg fade-in">
+                    <h2 class="text-2xl font-bold mb-4 text-sky-400">Player Roster</h2>
+                    <div id="player-list" class="space-y-3"></div>
+                </div>
+                <!-- Kill History Section -->
+                <div class="bg-slate-800 p-6 rounded-xl shadow-lg fade-in">
+                    <h2 class="text-2xl font-bold mb-4 text-rose-400">Kill History</h2>
+                    <div id="kill-history" class="space-y-3 max-h-[60vh] overflow-y-auto pr-2"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-container" class="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4 hidden">
+        <div id="modal-content" class="bg-slate-800 rounded-xl shadow-2xl p-6 w-full max-w-md fade-in">
+            <!-- Modal content will be injected here -->
         </div>
     </div>
     
-    <!-- Kill Modal -->
-    <div id="kill-modal" class="modal">
-        <div class="modal-content">
-            <h3>Record Kill</h3>
-            <label>Who got the kill?</label>
-            <select id="killer-select"></select>
-            <div class="modal-buttons">
-                <button class="btn-danger" onclick="confirmKill()">Confirm Kill</button>
-                <button onclick="closeModal('kill-modal')">Cancel</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Word Modal -->
-    <div id="word-modal" class="modal">
-        <div class="modal-content">
-            <h3>Assign New Word</h3>
-            <label>Select player:</label>
-            <select id="word-player-select"></select>
-            <div class="modal-buttons">
-                <button class="btn-warning" onclick="assignNewWord()">Assign Word</button>
-                <button onclick="closeModal('word-modal')">Cancel</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Undo Modal -->
-    <div id="undo-modal" class="modal">
-        <div class="modal-content">
-            <h3>Undo Kill</h3>
-            <label>Select kill to undo:</label>
-            <select id="undo-select" size="10" style="height: 200px;"></select>
-            <div class="modal-buttons">
-                <button class="btn-primary" onclick="confirmUndo()">Undo Selected</button>
-                <button onclick="closeModal('undo-modal')">Cancel</button>
-            </div>
-        </div>
-    </div>
-    
-    <script>
-        // game state - all in memory as requested
-        let players = [];
-        let killHistory = [];
-        let gameStates = []; // store all game states for undo functionality
-        let commonWords = [];
+    <!-- Firebase SDKs -->
+    <script type="module">
+        // Firebase Imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- GLOBAL VARIABLES & CONFIG ---
+
+        // These variables are provided by the environment. Do not change them.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-verbal-assassins';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Firebase services
+        let app, db, auth;
+        let userId = null;
+        let gameUnsubscribe = null; // To detach the listener later
+
+        // Game state (local cache, always updated by Firestore)
+        let gameState = {};
+        let commonWords = []; // Will be populated from CSV
+
+        // DOM Elements
+        const loadingEl = document.getElementById('loading');
+        const gameContentEl = document.getElementById('game-content');
+        const userInfoEl = document.getElementById('user-info');
+        const modalContainer = document.getElementById('modal-container');
+        const modalContent = document.getElementById('modal-content');
+
+        // --- INITIALIZATION ---
+
+        async function main() {
+            // Load words from CSV before doing anything else
+            await loadWordList(); 
+
+            try {
+                // Initialize Firebase
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // Listen for authentication state changes
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        userInfoEl.innerHTML = `Your User ID: <span class="font-mono text-sky-400">${userId}</span>`;
+                        connectToGame();
+                    } else {
+                        userId = null;
+                        userInfoEl.textContent = "Not signed in.";
+                        if (gameUnsubscribe) gameUnsubscribe();
+                    }
+                });
+
+                // Sign in the user
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+            } catch (error) {
+                console.error("Firebase Initialization Error:", error);
+                loadingEl.textContent = "Error: Could not connect to the game service.";
+            }
+        }
         
-        // initialize with 40 players
-        async function initializePlayers() {
-            // create array of player names
+        // --- FIRESTORE REAL-TIME CONNECTION ---
+
+        function connectToGame() {
+            const gameDocRef = doc(db, `artifacts/${appId}/public/data/games`, "verbal-assassins-game-specific");
+
+            gameUnsubscribe = onSnapshot(gameDocRef, (docSnap) => {
+                loadingEl.classList.add('hidden');
+                gameContentEl.classList.remove('hidden');
+
+                if (docSnap.exists()) {
+                    gameState = docSnap.data();
+                } else {
+                    // If the document doesn't exist, create the initial game state
+                    gameState = getInitialGameState();
+                    setDoc(gameDocRef, gameState);
+                }
+                
+                updateDisplay();
+            }, (error) => {
+                console.error("Error listening to game state:", error);
+                loadingEl.textContent = "Error: Lost connection to the game.";
+            });
+        }
+
+        // --- UI UPDATE FUNCTION ---
+
+        function updateDisplay() {
+            if (!gameState) return;
+
+            // Update stats
+            const alivePlayers = gameState.players ? gameState.players.filter(p => p.alive) : [];
+            document.getElementById('players-alive').textContent = alivePlayers.length;
+            document.getElementById('players-dead').textContent = (gameState.players?.length || 0) - alivePlayers.length;
+            document.getElementById('total-kills').textContent = gameState.killHistory?.length || 0;
+
+            // Update player list
+            const playerList = document.getElementById('player-list');
+            playerList.innerHTML = '';
+            if (gameState.players && gameState.players.length > 0) {
+                // Sort players: alive first, then alphabetically
+                const sortedPlayers = [...gameState.players].sort((a, b) => {
+                    if (a.alive && !b.alive) return -1;
+                    if (!a.alive && b.alive) return 1;
+                    return a.name.localeCompare(b.name);
+                });
+
+                sortedPlayers.forEach(player => {
+                    const playerCard = document.createElement('div');
+                    playerCard.className = `p-4 rounded-lg grid grid-cols-1 md:grid-cols-3 gap-4 items-center transition-all duration-300 ${player.alive ? 'bg-slate-700' : 'bg-slate-800/50 opacity-50'}`;
+                    
+                    const targetInfo = player.target || 'N/A';
+                    const wordInfo = player.word || 'N/A';
+
+                    playerCard.innerHTML = `
+                        <div class="font-bold text-lg ${player.alive ? 'text-white' : 'text-slate-500 line-through'}">${player.name}</div>
+                        <div class="text-slate-400">Target: <span class="font-semibold text-rose-400">${targetInfo}</span></div>
+                        <div class="text-slate-400">Word: <span class="font-mono bg-slate-600 px-2 py-1 rounded text-amber-300">${wordInfo}</span></div>
+                    `;
+                    playerList.appendChild(playerCard);
+                });
+            } else {
+                playerList.innerHTML = `<p class="text-slate-500 text-center py-4">Game not initialized. Click Reset Game.</p>`;
+            }
+
+            // Update kill history
+            const killHistoryEl = document.getElementById('kill-history');
+            killHistoryEl.innerHTML = '';
+            if (gameState.killHistory && gameState.killHistory.length > 0) {
+                [...gameState.killHistory].reverse().forEach(kill => {
+                    const killEntry = document.createElement('div');
+                    killEntry.className = 'bg-slate-700/50 p-3 rounded-lg';
+                    killEntry.innerHTML = `
+                        <div>
+                            <span class="font-bold text-rose-400">${kill.killer}</span> eliminated <span class="font-bold text-slate-400">${kill.victim}</span>
+                        </div>
+                        <div class="text-xs text-slate-500 mt-1">Word: <span class="font-mono">${kill.word}</span> at ${kill.timestamp}</div>
+                    `;
+                    killHistoryEl.appendChild(killEntry);
+                });
+            } else {
+                killHistoryEl.innerHTML = `<p class="text-slate-500 text-center py-4">No kills recorded yet.</p>`;
+            }
+        }
+
+        // --- GAME ACTIONS (WRITING TO FIRESTORE) ---
+
+        async function updateFirestoreState(newState) {
+            const gameDocRef = doc(db, `artifacts/${appId}/public/data/games`, "verbal-assassins-game-specific");
+            try {
+                await setDoc(gameDocRef, newState);
+            } catch (error) {
+                console.error("Error updating game state:", error);
+                alert("Failed to update game state. Please check your connection.");
+            }
+        }
+        
+        // Shuffle the cycle
+        document.getElementById('shuffle-btn').addEventListener('click', () => {
+            let activePlayers = gameState.players.filter(p => p.alive);
+            if (activePlayers.length < 2) {
+                alert("You need at least 2 living players to shuffle.");
+                return;
+            }
+
+            let shuffled = [...activePlayers].sort(() => 0.5 - Math.random());
+            const words = getWordList();
+            if (words.length === 0) {
+                alert("Word list is not available. Cannot shuffle.");
+                return;
+            }
+            const newPlayersState = JSON.parse(JSON.stringify(gameState.players));
+
+            shuffled.forEach((shuffledPlayer, i) => {
+                const target = shuffled[(i + 1) % shuffled.length];
+                const playerInState = newPlayersState.find(p => p.name === shuffledPlayer.name);
+                if (playerInState) {
+                    playerInState.target = target.name;
+                    playerInState.word = words[Math.floor(Math.random() * words.length)];
+                }
+            });
+            
+            const newState = { ...gameState, players: newPlayersState, gameStarted: true };
+            updateFirestoreState(newState);
+        });
+
+        // Reset the game
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            showModal(
+                'Confirm Reset',
+                '<p>Are you sure you want to reset the game? This will restore the original player list and clear all kills and targets.</p>',
+                [
+                    `<button id="cancel-btn" class="bg-slate-600 hover:bg-slate-500 font-semibold py-2 px-4 rounded-lg">Cancel</button>`,
+                    `<button id="confirm-reset-btn" class="bg-rose-600 hover:bg-rose-500 font-semibold py-2 px-4 rounded-lg">Confirm Reset</button>`
+                ]
+            );
+
+            document.getElementById('cancel-btn').onclick = closeModal;
+            document.getElementById('confirm-reset-btn').onclick = () => {
+                const newState = getInitialGameState();
+                updateFirestoreState(newState);
+                closeModal();
+            };
+        });
+
+        // --- MODAL HANDLING ---
+        
+        function showModal(title, content, buttons) {
+            modalContent.innerHTML = `
+                <h3 class="text-xl font-bold mb-4 text-sky-300">${title}</h3>
+                <div class="mb-6">${content}</div>
+                <div class="flex justify-end gap-3">
+                    ${buttons.join('')}
+                </div>
+            `;
+            modalContainer.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            modalContainer.classList.add('hidden');
+        }
+        
+        modalContainer.addEventListener('click', (e) => {
+            if (e.target === modalContainer) {
+                closeModal();
+            }
+        });
+
+        // Record Kill Modal
+        document.getElementById('kill-btn').addEventListener('click', () => {
+            const alivePlayers = gameState.players.filter(p => p.alive && p.target);
+            if (alivePlayers.length < 2) {
+                alert("Not enough players with targets are alive. Try shuffling first.");
+                return;
+            }
+            
+            const options = alivePlayers.map(p => `<option value="${p.name}">${p.name} → ${p.target}</option>`).join('');
+            
+            showModal(
+                'Record a Kill',
+                `<label for="killer-select" class="block mb-2 text-slate-400">Who got the kill?</label>
+                 <select id="killer-select" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2">${options}</select>`,
+                [
+                    `<button id="cancel-btn" class="bg-slate-600 hover:bg-slate-500 font-semibold py-2 px-4 rounded-lg">Cancel</button>`,
+                    `<button id="confirm-kill-btn" class="bg-rose-600 hover:bg-rose-500 font-semibold py-2 px-4 rounded-lg">Confirm</button>`
+                ]
+            );
+
+            document.getElementById('cancel-btn').onclick = closeModal;
+            document.getElementById('confirm-kill-btn').onclick = () => {
+                const newPlayersState = JSON.parse(JSON.stringify(gameState.players));
+                const killerName = document.getElementById('killer-select').value;
+                const killer = newPlayersState.find(p => p.name === killerName);
+                const victim = newPlayersState.find(p => p.name === killer.target);
+                
+                if (!killer || !victim) {
+                    alert('Error finding killer or victim. State may have changed.');
+                    return;
+                }
+
+                victim.alive = false;
+                killer.target = victim.target;
+                killer.word = getWordList()[Math.floor(Math.random() * getWordList().length)];
+
+                const newKillHistory = [...gameState.killHistory, {
+                    killer: killer.name,
+                    victim: victim.name,
+                    word: killer.word,
+                    timestamp: new Date().toLocaleTimeString()
+                }];
+
+                const newState = { ...gameState, players: newPlayersState, killHistory: newKillHistory };
+                updateFirestoreState(newState);
+                closeModal();
+            };
+        });
+        
+        // New Word Modal
+        document.getElementById('word-btn').addEventListener('click', () => {
+            const alivePlayers = gameState.players.filter(p => p.alive);
+            const options = alivePlayers.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+            
+            showModal(
+                'Assign New Word',
+                `<label for="word-player-select" class="block mb-2 text-slate-400">Select Player:</label>
+                 <select id="word-player-select" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2">${options}</select>`,
+                [
+                    `<button id="cancel-btn" class="bg-slate-600 hover:bg-slate-500 font-semibold py-2 px-4 rounded-lg">Cancel</button>`,
+                    `<button id="assign-word-btn" class="bg-amber-500 hover:bg-amber-400 font-semibold py-2 px-4 rounded-lg">Assign</button>`
+                ]
+            );
+
+            document.getElementById('cancel-btn').onclick = closeModal;
+            document.getElementById('assign-word-btn').onclick = () => {
+                const newPlayersState = JSON.parse(JSON.stringify(gameState.players));
+                const playerName = document.getElementById('word-player-select').value;
+                const player = newPlayersState.find(p => p.name === playerName);
+                player.word = getWordList()[Math.floor(Math.random() * getWordList().length)];
+                
+                const newState = { ...gameState, players: newPlayersState };
+                updateFirestoreState(newState);
+                closeModal();
+            };
+        });
+
+        // --- UTILITY FUNCTIONS ---
+
+        function getInitialGameState() {
             const playerNames = [
                 'João', 'Cyrus', 'Ali', 'Adriani', 'Skyler', 'Andy J', 'Keiko', 'Daniel',
                 'Grace', 'Alethea', 'Josie', 'Amanda', 'Doruk Ege', 'Colette', 'Srinivas', 'JJ',
@@ -363,40 +420,42 @@
                 'Isaac', 'Jonathan', 'Annabel', 'Tara', 'Rio', 'Allison', 'Lucy', 'Jason',
                 'Brian', 'Andy S', 'Christina', 'Amelie', 'Kevin', 'Sophia', 'Gavin', 'Lisa'
             ];
-            players = playerNames; // start with string array
             
-            // load word list (from the CSV if available)
-            await loadWordList();
-            shuffleCycle();
+            return {
+                players: playerNames.map(name => ({
+                    name: name,
+                    target: null,
+                    word: null,
+                    alive: true
+                })),
+                killHistory: [],
+                gameStarted: false,
+            };
         }
         
-        // load word list from CSV file
         async function loadWordList() {
             try {
-                // fetch the csv from same directory as the html file
                 const response = await fetch('4000-most-common-english-words-csv.csv');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const csvContent = await response.text();
                 
-                // parse csv - it has one column with header
-                const lines = csvContent.split(/\r?\n/); // handle both unix and windows line endings
-                commonWords = [];
+                const lines = csvContent.split(/\r?\n/);
+                const words = [];
                 
-                // skip header, get words from line 501 to 3001 (index 500-3000)
+                // Use the same range as the original code: lines 501 to 3001
                 for (let i = 501; i <= 3001 && i < lines.length; i++) {
-                    // remove any whitespace and carriage returns
                     const word = lines[i].replace(/\r/g, '').trim();
-                    if (word && word.length > 0) {
-                        commonWords.push(word);
+                    if (word) {
+                        words.push(word);
                     }
                 }
-                
-                console.log(`Loaded ${commonWords.length} words from CSV`);
-                console.log('Sample words:', commonWords.slice(0, 5)); // show first 5 words for debugging
-                
+                commonWords = words;
+                console.log(`Successfully loaded ${commonWords.length} words from CSV.`);
             } catch (error) {
-                // fallback to hardcoded list if csv not available
-                console.log('CSV not found or error parsing, using fallback word list:', error);
-                // these are actual words from around the 500-3000 range in common word lists
+                console.warn('Could not load CSV file. Using fallback word list.', error);
+                // Fallback to a hardcoded list if the CSV is not found
                 commonWords = [
                     'doctor', 'wall', 'patient', 'worker', 'news', 'test', 'movie', 'certain',
                     'north', 'love', 'personal', 'open', 'support', 'simply', 'third',
@@ -406,262 +465,18 @@
                     'difficult', 'listen', 'soon', 'culture', 'billion', 'chance', 'brother',
                     'energy', 'period', 'course', 'summer', 'realize', 'hundred', 'available',
                     'plant', 'likely', 'opportunity', 'term', 'chair', 'protect', 'parent',
-                    'interview', 'yesterday', 'sell', 'fire', 'particularly', 'forget', 'cold',
-                    'represent', 'focus', 'foreign', 'throughout', 'upon', 'agency', 'push',
-                    'nature', 'recently', 'store', 'reduce', 'sound', 'note', 'fine',
-                    'near', 'movement', 'page', 'enter', 'share', 'common', 'poor',
-                    'natural', 'race', 'concern', 'series', 'significant', 'similar', 'language',
-                    'usually', 'response', 'dead', 'rise', 'animal', 'factor', 'decade',
-                    'shoot', 'east', 'save', 'seven', 'artist', 'scene', 'stock', 'career'
+                    'interview', 'yesterday', 'sell', 'fire', 'particularly', 'forget', 'cold'
                 ];
             }
         }
-        
-        function getRandomWord() {
-            // mimics python random.randrange(1000, 4000) 
-            // which means words from index 1000-3999 in the original csv
-            // but we're only loading words 500-3000 (the range the user wants)
-            if (commonWords.length === 0) {
-                console.error('No words loaded!');
-                return 'ERROR'; // visible error to help debug
-            }
-            return commonWords[Math.floor(Math.random() * commonWords.length)];
+
+        function getWordList() {
+            return commonWords;
         }
-        
-        function shuffleCycle() {
-            if (players.length === 0) {
-                alert('Initialize players first!');
-                return;
-            }
-            
-            // get player names (handle both initial string array and object array)
-            const playerNames = players.map(p => typeof p === 'string' ? p : p.name);
-            
-            // create game state
-            const availableTargets = [...Array(playerNames.length).keys()];
-            const assignments = new Array(playerNames.length);
-            
-            // create a cycle like in the python code
-            let current = 0;
-            availableTargets.splice(0, 1); // remove first player from targets
-            
-            while (availableTargets.length > 0) {
-                const targetIndex = Math.floor(Math.random() * availableTargets.length);
-                const target = availableTargets[targetIndex];
-                assignments[current] = target;
-                availableTargets.splice(targetIndex, 1);
-                current = target;
-            }
-            assignments[current] = 0; // complete the cycle
-            
-            // create player objects
-            players = playerNames.map((name, i) => ({
-                name: name,
-                target: playerNames[assignments[i]], // use the name from playerNames array
-                targetIndex: assignments[i],
-                word: getRandomWord(),
-                alive: true
-            }));
-            
-            killHistory = [];
-            updateDisplay();
-        }
-        
-        function showKillModal() {
-            const select = document.getElementById('killer-select');
-            select.innerHTML = '';
-            
-            // only show alive players who have targets
-            const alivePlayers = players.filter(p => p.alive);
-            alivePlayers.forEach(player => {
-                const option = document.createElement('option');
-                option.value = player.name;
-                option.textContent = `${player.name} → ${player.target}`;
-                select.appendChild(option);
-            });
-            
-            document.getElementById('kill-modal').style.display = 'flex';
-        }
-        
-        function confirmKill() {
-            const killerName = document.getElementById('killer-select').value;
-            const killer = players.find(p => p.name === killerName);
-            
-            if (!killer) return;
-            
-            // save current state before making changes
-            gameStates.push({
-                players: JSON.parse(JSON.stringify(players)),
-                killHistory: JSON.parse(JSON.stringify(killHistory))
-            });
-            
-            // find the victim
-            const victim = players.find(p => p.name === killer.target);
-            
-            // record the kill
-            killHistory.push({
-                killer: killer.name,
-                victim: victim.name,
-                word: killer.word,
-                timestamp: new Date().toLocaleTimeString()
-            });
-            
-            // killer inherits victim's target  
-            killer.target = victim.target; // this should already be a string
-            killer.targetIndex = victim.targetIndex;
-            killer.word = getRandomWord(); // new word for killer
-            
-            // mark victim as dead
-            victim.alive = false;
-            
-            closeModal('kill-modal');
-            updateDisplay();
-        }
-        
-        function showWordModal() {
-            const select = document.getElementById('word-player-select');
-            select.innerHTML = '';
-            
-            const alivePlayers = players.filter(p => p.alive);
-            alivePlayers.forEach(player => {
-                const option = document.createElement('option');
-                option.value = player.name;
-                option.textContent = player.name;
-                select.appendChild(option);
-            });
-            
-            document.getElementById('word-modal').style.display = 'flex';
-        }
-        
-        function assignNewWord() {
-            const playerName = document.getElementById('word-player-select').value;
-            const player = players.find(p => p.name === playerName);
-            
-            if (player) {
-                player.word = getRandomWord();
-                closeModal('word-modal');
-                updateDisplay();
-            }
-        }
-        
-        function showUndoModal() {
-            if (gameStates.length === 0) {
-                alert('No kills to undo!');
-                return;
-            }
-            
-            const select = document.getElementById('undo-select');
-            select.innerHTML = '';
-            
-            // show the initial state
-            const initialOption = document.createElement('option');
-            initialOption.value = '0';
-            initialOption.textContent = 'Initial State (No Kills)';
-            select.appendChild(initialOption);
-            
-            // show all kill states
-            killHistory.forEach((kill, index) => {
-                const option = document.createElement('option');
-                option.value = index + 1;
-                option.textContent = `After Kill ${index + 1}: ${kill.killer} → ${kill.victim} (${kill.timestamp})`;
-                select.appendChild(option);
-            });
-            
-            // select the most recent state by default
-            select.value = killHistory.length;
-            
-            document.getElementById('undo-modal').style.display = 'flex';
-        }
-        
-        function confirmUndo() {
-            const select = document.getElementById('undo-select');
-            const stateIndex = parseInt(select.value);
-            
-            if (stateIndex === 0) {
-                // restore to initial state (before any kills)
-                if (gameStates.length > 0) {
-                    const initialState = gameStates[0];
-                    players = JSON.parse(JSON.stringify(initialState.players));
-                    // reset everyone to alive since this is before any kills
-                    players.forEach(p => p.alive = true);
-                    killHistory = [];
-                    gameStates = [];
-                }
-            } else {
-                // restore to state after specific kill
-                const targetState = gameStates[stateIndex - 1];
-                players = JSON.parse(JSON.stringify(targetState.players));
-                killHistory = JSON.parse(JSON.stringify(targetState.killHistory));
-                // keep only the game states up to this point
-                gameStates = gameStates.slice(0, stateIndex);
-                
-                // apply all kills up to this point
-                for (let i = 0; i < stateIndex; i++) {
-                    const kill = killHistory[i];
-                    const killer = players.find(p => p.name === kill.killer);
-                    const victim = players.find(p => p.name === kill.victim);
-                    
-                    if (killer && victim) {
-                        killer.target = victim.target;
-                        killer.targetIndex = victim.targetIndex;
-                        victim.alive = false;
-                    }
-                }
-            }
-            
-            closeModal('undo-modal');
-            updateDisplay();
-        }
-        
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-        
-        function updateDisplay() {
-            // update stats
-            const alivePlayers = players.filter(p => p.alive);
-            document.getElementById('players-alive').textContent = alivePlayers.length;
-            document.getElementById('players-dead').textContent = players.length - alivePlayers.length;
-            document.getElementById('total-kills').textContent = killHistory.length;
-            
-            // update player list
-            const playerList = document.getElementById('player-list');
-            playerList.innerHTML = '';
-            
-            players.forEach(player => {
-                if (!player.alive) return;
-                
-                const card = document.createElement('div');
-                card.className = 'player-card';
-                card.innerHTML = `
-                    <div class="player-name">${player.name}</div>
-                    <div>Target: <span class="target">${player.target}</span></div>
-                    <div class="word">${player.word}</div>
-                `;
-                playerList.appendChild(card);
-            });
-            
-            // update kill history
-            const historyDiv = document.getElementById('kill-history');
-            historyDiv.innerHTML = '';
-            
-            // show most recent kills first
-            killHistory.slice().reverse().forEach((kill, index) => {
-                const entry = document.createElement('div');
-                entry.className = 'kill-entry';
-                entry.innerHTML = `
-                    <div>
-                        <strong>${kill.killer}</strong> eliminated <strong>${kill.victim}</strong>
-                        <br><small>Word: ${kill.word} • ${kill.timestamp}</small>
-                    </div>
-                `;
-                historyDiv.appendChild(entry);
-            });
-        }
-        
-        // initialize on load
-        window.onload = async function() {
-            await initializePlayers();
-        };    </script>
+
+        // --- START THE APP ---
+        main();
+
+    </script>
 </body>
 </html>
