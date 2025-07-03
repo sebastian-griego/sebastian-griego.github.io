@@ -490,12 +490,6 @@
             
             if (!killer) return;
             
-            // save current state before making changes
-            gameStates.push({
-                players: JSON.parse(JSON.stringify(players)),
-                killHistory: JSON.parse(JSON.stringify(killHistory))
-            });
-            
             // find the victim
             const victim = players.find(p => p.name === killer.target);
             
@@ -507,13 +501,17 @@
                 timestamp: new Date().toLocaleTimeString()
             });
             
-            // killer inherits victim's target  
-            killer.target = victim.target; // this should already be a string
+            // mutate state
+            killer.target = victim.target;
             killer.targetIndex = victim.targetIndex;
-            killer.word = getRandomWord(); // new word for killer
-            
-            // mark victim as dead
+            killer.word = getRandomWord();
             victim.alive = false;
+            
+            /* 👉 snapshot NOW – this represents the state *after* the kill */
+            gameStates.push({
+                players: JSON.parse(JSON.stringify(players)),
+                killHistory: JSON.parse(JSON.stringify(killHistory))
+            });
             
             closeModal('kill-modal');
             updateDisplay();
@@ -663,7 +661,6 @@
         // initialize on load
         window.onload = async function() {
             await initializePlayers();
-        };
-    </script>
+        };    </script>
 </body>
 </html>
