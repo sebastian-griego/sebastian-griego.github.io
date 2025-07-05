@@ -67,6 +67,8 @@
                 <button id="kill-btn" class="bg-rose-600 hover:bg-rose-500 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition-all duration-150 ease-in-out hover:scale-105">💀 Record Kill</button>
                 <button id="undo-kill-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition-all duration-150 ease-in-out hover:scale-105">↩️ Undo Kill</button>
                 <button id="word-btn" class="bg-amber-500 hover:bg-amber-400 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition-all duration-150 ease-in-out hover:scale-105">🎲 New Word</button>
+                <button id="backup-btn" class="bg-purple-600 hover:bg-purple-500 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition-all duration-150 ease-in-out hover:scale-105">💾 Save Backup</button>
+                <button id="restore-btn" class="bg-teal-600 hover:bg-teal-500 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition-all duration-150 ease-in-out hover:scale-105">📂 Restore Backup</button>
                 <button id="reset-btn" class="bg-slate-600 hover:bg-slate-500 text-white font-semibold py-2 px-5 rounded-lg shadow-md transition-all duration-150 ease-in-out hover:scale-105">🔄 Reset Game</button>
             </div>
             
@@ -76,6 +78,9 @@
                 <div class="bg-slate-800 p-4 rounded-xl text-center shadow-lg"><div id="players-dead" class="text-3xl font-bold text-rose-400">0</div><div class="text-slate-400">Eliminated</div></div>
                 <div class="bg-slate-800 p-4 rounded-xl text-center shadow-lg"><div id="total-kills" class="text-3xl font-bold text-sky-400">0</div><div class="text-slate-400">Total Kills</div></div>
             </div>
+
+            <!-- Last save info -->
+            <div id="last-save-info" class="text-center mb-4 text-sm text-slate-500"></div>
 
             <!-- Main Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -105,7 +110,7 @@
         // Firebase Imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, setDoc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- GLOBAL VARIABLES & CONFIG ---
         const appId = 'default-verbal-assassins';
@@ -131,6 +136,7 @@
         const userInfoEl = document.getElementById('user-info');
         const modalContainer = document.getElementById('modal-container');
         const modalContent = document.getElementById('modal-content');
+        const lastSaveInfo = document.getElementById('last-save-info');
 
         // --- INITIALIZATION ---
 
@@ -163,25 +169,53 @@
         
         // --- FIRESTORE REAL-TIME CONNECTION ---
 
-        function connectToGame() {
+        async function connectToGame() {
             const gameDocRef = doc(db, `artifacts/${appId}/public/data/games`, "verbal-assassins-game-specific");
 
-            gameUnsubscribe = onSnapshot(gameDocRef, (docSnap) => {
-                loadingEl.classList.add('hidden');
-                gameContentEl.classList.remove('hidden');
-
-                if (docSnap.exists()) {
-                    gameState = docSnap.data();
-                } else {
-                    gameState = getInitialGameState();
-                    setDoc(gameDocRef, gameState);
-                }
+            try {
+                // first, check if document exists to avoid accidental resets
+                const docSnap = await getDoc(gameDocRef);
                 
-                updateDisplay();
-            }, (error) => {
-                console.error("Error listening to game state:", error);
-                loadingEl.textContent = "Error: Lost connection to the game.";
-            });
+                if (!docSnap.exists()) {
+                    // instead of auto-creating, ask the user
+                    loadingEl.innerHTML = `
+                        <p class="text-lg text-amber-400 mb-4">No game found!</p>
+                        <p class="text-slate-400 mb-4">Would you like to start a new game?</p>
+                        <button id="create-new-game" class="bg-green-600 hover:bg-green-500 text-white font-semibold py-2 px-5 rounded-lg">Create New Game</button>
+                    `;
+                    
+                    document.getElementById('create-new-game').addEventListener('click', async () => {
+                        const initialState = getInitialGameState();
+                        await setDoc(gameDocRef, initialState);
+                        location.reload(); // reload to connect properly
+                    });
+                    return;
+                }
+
+                // now set up real-time listener
+                gameUnsubscribe = onSnapshot(gameDocRef, (docSnap) => {
+                    loadingEl.classList.add('hidden');
+                    gameContentEl.classList.remove('hidden');
+
+                    if (docSnap.exists()) {
+                        gameState = docSnap.data();
+                        updateDisplay();
+                        
+                        // show last update time if available
+                        if (gameState.lastUpdated?.toDate) {
+                            const date = gameState.lastUpdated.toDate();
+                            lastSaveInfo.textContent = `Last update: ${date.toLocaleString()}`;
+                        }
+                    }
+                }, (error) => {
+                    console.error("Error listening to game state:", error);
+                    loadingEl.innerHTML = `<p class="text-red-400">Error: Lost connection to the game.</p><p class="text-sm text-slate-500">${error.message}</p>`;
+                });
+
+            } catch (error) {
+                console.error("Error connecting to game:", error);
+                loadingEl.innerHTML = `<p class="text-red-400">Error: Could not connect to game.</p><p class="text-sm text-slate-500">${error.message}</p>`;
+            }
         }
 
         // --- UI UPDATE FUNCTION ---
@@ -245,12 +279,91 @@
         async function updateFirestoreState(newState) {
             const gameDocRef = doc(db, `artifacts/${appId}/public/data/games`, "verbal-assassins-game-specific");
             try {
+                // add timestamp to track when changes happen
+                newState.lastUpdated = serverTimestamp();
+                newState.lastUpdatedBy = userId;
+                
                 await setDoc(gameDocRef, newState);
             } catch (error) {
                 console.error("Error updating game state:", error);
                 alert("Failed to update game state. Please check your connection.");
             }
         }
+
+        // backup functionality
+        async function saveBackup() {
+            const backupData = {
+                ...gameState,
+                backupDate: new Date().toISOString(),
+                backupBy: userId
+            };
+            
+            // store in browser's local storage with timestamp
+            const backupKey = `verbal-assassins-backup-${new Date().getTime()}`;
+            localStorage.setItem(backupKey, JSON.stringify(backupData));
+            
+            // also store reference to latest backup
+            localStorage.setItem('verbal-assassins-latest-backup', backupKey);
+            
+            // keep only last 5 backups to save space
+            const allKeys = Object.keys(localStorage).filter(k => k.startsWith('verbal-assassins-backup-'));
+            if (allKeys.length > 5) {
+                allKeys.sort();
+                const toRemove = allKeys.slice(0, allKeys.length - 5);
+                toRemove.forEach(key => localStorage.removeItem(key));
+            }
+            
+            alert(`Backup saved! (${new Date().toLocaleTimeString()})`);
+        }
+
+        async function showRestoreOptions() {
+            const allBackups = Object.keys(localStorage)
+                .filter(k => k.startsWith('verbal-assassins-backup-'))
+                .sort()
+                .reverse();
+            
+            if (allBackups.length === 0) {
+                alert("No backups found in your browser.");
+                return;
+            }
+            
+            const options = allBackups.map(key => {
+                const backup = JSON.parse(localStorage.getItem(key));
+                const date = new Date(backup.backupDate);
+                const aliveCount = backup.players?.filter(p => p.alive).length || 0;
+                const killCount = backup.killHistory?.length || 0;
+                return `<option value="${key}">${date.toLocaleString()} - ${aliveCount} alive, ${killCount} kills</option>`;
+            }).join('');
+            
+            showModal(
+                'Restore from Backup',
+                `<label for="backup-select" class="block mb-2 text-slate-400">Select a backup to restore:</label>
+                 <select id="backup-select" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 mb-4">${options}</select>
+                 <p class="text-amber-400 text-sm">⚠️ This will overwrite the current game state!</p>`,
+                [
+                    `<button id="cancel-btn" class="bg-slate-600 hover:bg-slate-500 font-semibold py-2 px-4 rounded-lg">Cancel</button>`,
+                    `<button id="confirm-restore-btn" class="bg-teal-600 hover:bg-teal-500 font-semibold py-2 px-4 rounded-lg">Restore</button>`
+                ]
+            );
+
+            document.getElementById('cancel-btn').onclick = closeModal;
+            document.getElementById('confirm-restore-btn').onclick = async () => {
+                const selectedKey = document.getElementById('backup-select').value;
+                const backupData = JSON.parse(localStorage.getItem(selectedKey));
+                
+                // remove backup metadata before restoring
+                delete backupData.backupDate;
+                delete backupData.backupBy;
+                
+                await updateFirestoreState(backupData);
+                closeModal();
+                alert("Game restored from backup!");
+            };
+        }
+
+        // add event listeners for new buttons
+        document.getElementById('backup-btn').addEventListener('click', saveBackup);
+        document.getElementById('restore-btn').addEventListener('click', showRestoreOptions);
         
         document.getElementById('shuffle-btn').addEventListener('click', () => {
             let activePlayers = gameState.players.filter(p => p.alive);
@@ -283,7 +396,7 @@
         document.getElementById('reset-btn').addEventListener('click', () => {
             showModal(
                 'Confirm Reset',
-                '<p>Are you sure you want to reset the game? This will restore the original player list and clear all kills and targets.</p>',
+                '<p>Are you sure you want to reset the game? This will restore the original player list and clear all kills and targets.</p><p class="text-amber-400 text-sm mt-2">💡 Tip: Save a backup first!</p>',
                 [
                     `<button id="cancel-btn" class="bg-slate-600 hover:bg-slate-500 font-semibold py-2 px-4 rounded-lg">Cancel</button>`,
                     `<button id="confirm-reset-btn" class="bg-rose-600 hover:bg-rose-500 font-semibold py-2 px-4 rounded-lg">Confirm Reset</button>`
@@ -352,7 +465,7 @@
                     return;
                 }
 
-                // *** NEW: Store the killer's state BEFORE the kill for undo purposes ***
+                // Store the killer's state BEFORE the kill for undo purposes
                 const originalKillerTarget = killer.target;
                 const originalKillerWord = killer.word;
 
@@ -429,7 +542,7 @@
                 const killIndexToUndo = parseInt(document.getElementById('undo-select').value);
                 const killToUndo = gameState.killHistory[killIndexToUndo];
 
-                // *** NEW: Smarter undo logic that does not reset the whole game ***
+                // Smarter undo logic that does not reset the whole game
                 if (!killToUndo) {
                     alert("Could not find the specified kill.");
                     return;
@@ -553,6 +666,7 @@
                 })),
                 killHistory: [],
                 gameStarted: false,
+                version: 2, // add version to track schema changes
             };
         }
         
