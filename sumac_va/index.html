@@ -73,8 +73,9 @@
             </div>
             
             <!-- Stats -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 fade-in">
-                <div class="bg-slate-800 p-4 rounded-xl text-center shadow-lg"><div id="players-alive" class="text-3xl font-bold text-green-400">0</div><div class="text-slate-400">Players Alive</div></div>
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8 fade-in">
+                <div class="bg-slate-800 p-4 rounded-xl text-center shadow-lg"><div id="players-alive" class="text-3xl font-bold text-green-400">0</div><div class="text-slate-400">Main Bracket</div></div>
+                <div class="bg-slate-800 p-4 rounded-xl text-center shadow-lg"><div id="players-losers" class="text-3xl font-bold text-amber-400">0</div><div class="text-slate-400">Losers Bracket</div></div>
                 <div class="bg-slate-800 p-4 rounded-xl text-center shadow-lg"><div id="players-dead" class="text-3xl font-bold text-rose-400">0</div><div class="text-slate-400">Eliminated</div></div>
                 <div class="bg-slate-800 p-4 rounded-xl text-center shadow-lg"><div id="total-kills" class="text-3xl font-bold text-sky-400">0</div><div class="text-slate-400">Total Kills</div></div>
             </div>
@@ -85,14 +86,37 @@
             <!-- Main Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Players Section -->
-                <div class="lg:col-span-2 bg-slate-800 p-6 rounded-xl shadow-lg fade-in">
-                    <h2 class="text-2xl font-bold mb-4 text-sky-400">Player Roster</h2>
-                    <div id="player-list" class="space-y-3"></div>
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Main Bracket -->
+                    <div class="bg-slate-800 p-6 rounded-xl shadow-lg fade-in">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-2xl font-bold text-sky-400">Main Bracket</h2>
+                            <span class="text-sm text-slate-400">Winners stay here</span>
+                        </div>
+                        <div id="main-bracket-list" class="space-y-3"></div>
+                    </div>
+                    
+                    <!-- Losers Bracket -->
+                    <div class="bg-slate-800 p-6 rounded-xl shadow-lg fade-in">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-2xl font-bold text-amber-400">Losers Bracket</h2>
+                            <span class="text-sm text-slate-400">Second chance zone</span>
+                        </div>
+                        <div id="losers-bracket-list" class="space-y-3"></div>
+                        <button id="shuffle-losers-btn" class="mt-4 bg-amber-600 hover:bg-amber-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-150 ease-in-out hover:scale-105 text-sm">🔀 Shuffle Losers</button>
+                    </div>
+                    
+                    <!-- Eliminated -->
+                    <div class="bg-slate-800 p-6 rounded-xl shadow-lg fade-in">
+                        <h2 class="text-xl font-bold mb-4 text-rose-400">Eliminated (Out Completely)</h2>
+                        <div id="eliminated-list" class="space-y-3"></div>
+                    </div>
                 </div>
+                
                 <!-- Kill History Section -->
                 <div class="bg-slate-800 p-6 rounded-xl shadow-lg fade-in">
                     <h2 class="text-2xl font-bold mb-4 text-rose-400">Kill History</h2>
-                    <div id="kill-history" class="space-y-3 max-h-[60vh] overflow-y-auto pr-2"></div>
+                    <div id="kill-history" class="space-y-3 max-h-[80vh] overflow-y-auto pr-2"></div>
                 </div>
             </div>
         </main>
@@ -199,6 +223,10 @@
 
                     if (docSnap.exists()) {
                         gameState = docSnap.data();
+                        // migrate old games to new format
+                        if (!gameState.version || gameState.version < 3) {
+                            migrateGameState();
+                        }
                         updateDisplay();
                         
                         // show last update time if available
@@ -218,52 +246,94 @@
             }
         }
 
+        // --- MIGRATION FUNCTION ---
+        
+        function migrateGameState() {
+            console.log('Migrating game state to version 3...');
+            // add bracket field to all players if it doesn't exist
+            const newPlayersState = gameState.players.map(player => ({
+                ...player,
+                bracket: player.bracket || 'main' // default everyone to main bracket
+            }));
+            
+            const newState = {
+                ...gameState,
+                players: newPlayersState,
+                version: 3,
+                losersBracketStarted: false
+            };
+            
+            updateFirestoreState(newState);
+        }
+
         // --- UI UPDATE FUNCTION ---
 
         function updateDisplay() {
             if (!gameState) return;
 
-            const alivePlayers = gameState.players ? gameState.players.filter(p => p.alive) : [];
-            document.getElementById('players-alive').textContent = alivePlayers.length;
-            document.getElementById('players-dead').textContent = (gameState.players?.length || 0) - alivePlayers.length;
+            // get players by bracket
+            const mainBracketPlayers = gameState.players ? gameState.players.filter(p => p.alive && p.bracket === 'main') : [];
+            const losersBracketPlayers = gameState.players ? gameState.players.filter(p => p.alive && p.bracket === 'losers') : [];
+            const eliminatedPlayers = gameState.players ? gameState.players.filter(p => !p.alive) : [];
+            
+            document.getElementById('players-alive').textContent = mainBracketPlayers.length;
+            document.getElementById('players-losers').textContent = losersBracketPlayers.length;
+            document.getElementById('players-dead').textContent = eliminatedPlayers.length;
             document.getElementById('total-kills').textContent = gameState.killHistory?.length || 0;
 
-            const playerList = document.getElementById('player-list');
-            playerList.innerHTML = '';
-            if (gameState.players && gameState.players.length > 0) {
-                const sortedPlayers = [...gameState.players].sort((a, b) => {
-                    if (a.alive && !b.alive) return -1;
-                    if (!a.alive && b.alive) return 1;
-                    return a.name.localeCompare(b.name);
-                });
-
-                sortedPlayers.forEach(player => {
-                    const playerCard = document.createElement('div');
-                    playerCard.className = `p-4 rounded-lg grid grid-cols-1 md:grid-cols-3 gap-4 items-center transition-all duration-300 ${player.alive ? 'bg-slate-700' : 'bg-slate-800/50 opacity-50'}`;
-                    
-                    const targetInfo = player.target || 'N/A';
-                    const wordInfo = player.word || 'N/A';
-
-                    playerCard.innerHTML = `
-                        <div class="font-bold text-lg ${player.alive ? 'text-white' : 'text-slate-500 line-through'}">${player.name}</div>
-                        <div class="text-slate-400">Target: <span class="font-semibold text-rose-400">${targetInfo}</span></div>
-                        <div class="text-slate-400">Word: <span class="font-mono bg-slate-600 px-2 py-1 rounded text-amber-300">${wordInfo}</span></div>
-                    `;
-                    playerList.appendChild(playerCard);
+            // display main bracket
+            const mainBracketList = document.getElementById('main-bracket-list');
+            mainBracketList.innerHTML = '';
+            if (mainBracketPlayers.length > 0) {
+                const sortedMainPlayers = [...mainBracketPlayers].sort((a, b) => a.name.localeCompare(b.name));
+                sortedMainPlayers.forEach(player => {
+                    mainBracketList.appendChild(createPlayerCard(player, 'main'));
                 });
             } else {
-                playerList.innerHTML = `<p class="text-slate-500 text-center py-4">Game not initialized. Click Reset Game.</p>`;
+                mainBracketList.innerHTML = `<p class="text-slate-500 text-center py-4">No players in main bracket.</p>`;
             }
 
+            // display losers bracket
+            const losersBracketList = document.getElementById('losers-bracket-list');
+            losersBracketList.innerHTML = '';
+            if (losersBracketPlayers.length > 0) {
+                const sortedLosersPlayers = [...losersBracketPlayers].sort((a, b) => a.name.localeCompare(b.name));
+                sortedLosersPlayers.forEach(player => {
+                    losersBracketList.appendChild(createPlayerCard(player, 'losers'));
+                });
+            } else {
+                losersBracketList.innerHTML = `<p class="text-slate-500 text-center py-4">No players in losers bracket yet.</p>`;
+            }
+
+            // display eliminated
+            const eliminatedList = document.getElementById('eliminated-list');
+            eliminatedList.innerHTML = '';
+            if (eliminatedPlayers.length > 0) {
+                eliminatedPlayers.forEach(player => {
+                    const playerCard = document.createElement('div');
+                    playerCard.className = `p-4 rounded-lg bg-slate-800/50 opacity-50`;
+                    playerCard.innerHTML = `
+                        <div class="font-bold text-lg text-slate-500 line-through">${player.name}</div>
+                        <div class="text-sm text-slate-600">Eliminated from ${player.bracket || 'main'} bracket</div>
+                    `;
+                    eliminatedList.appendChild(playerCard);
+                });
+            } else {
+                eliminatedList.innerHTML = `<p class="text-slate-500 text-center py-4">No eliminated players.</p>`;
+            }
+
+            // kill history
             const killHistoryEl = document.getElementById('kill-history');
             killHistoryEl.innerHTML = '';
             if (gameState.killHistory && gameState.killHistory.length > 0) {
                 [...gameState.killHistory].reverse().forEach(kill => {
                     const killEntry = document.createElement('div');
                     killEntry.className = 'bg-slate-700/50 p-3 rounded-lg';
+                    const bracketBadge = kill.bracket ? `<span class="text-xs px-2 py-1 rounded-full ${kill.bracket === 'losers' ? 'bg-amber-600/30 text-amber-400' : 'bg-sky-600/30 text-sky-400'}">${kill.bracket}</span>` : '';
                     killEntry.innerHTML = `
                         <div>
                             <span class="font-bold text-rose-400">${kill.killer}</span> eliminated <span class="font-bold text-slate-400">${kill.victim}</span>
+                            ${bracketBadge}
                         </div>
                         <div class="text-xs text-slate-500 mt-1">Word: <span class="font-mono">${kill.word}</span> at ${kill.timestamp}</div>
                     `;
@@ -272,6 +342,22 @@
             } else {
                 killHistoryEl.innerHTML = `<p class="text-slate-500 text-center py-4">No kills recorded yet.</p>`;
             }
+        }
+
+        function createPlayerCard(player, bracket) {
+            const playerCard = document.createElement('div');
+            const bracketColor = bracket === 'losers' ? 'bg-amber-900/30 border-amber-700/50' : 'bg-slate-700';
+            playerCard.className = `p-4 rounded-lg grid grid-cols-1 md:grid-cols-3 gap-4 items-center transition-all duration-300 ${bracketColor} ${bracket === 'losers' ? 'border' : ''}`;
+            
+            const targetInfo = player.target || 'N/A';
+            const wordInfo = player.word || 'N/A';
+
+            playerCard.innerHTML = `
+                <div class="font-bold text-lg text-white">${player.name}</div>
+                <div class="text-slate-400">Target: <span class="font-semibold text-rose-400">${targetInfo}</span></div>
+                <div class="text-slate-400">Word: <span class="font-mono bg-slate-600 px-2 py-1 rounded text-amber-300">${wordInfo}</span></div>
+            `;
+            return playerCard;
         }
 
         // --- GAME ACTIONS (WRITING TO FIRESTORE) ---
@@ -330,9 +416,10 @@
             const options = allBackups.map(key => {
                 const backup = JSON.parse(localStorage.getItem(key));
                 const date = new Date(backup.backupDate);
-                const aliveCount = backup.players?.filter(p => p.alive).length || 0;
+                const mainCount = backup.players?.filter(p => p.alive && p.bracket === 'main').length || 0;
+                const losersCount = backup.players?.filter(p => p.alive && p.bracket === 'losers').length || 0;
                 const killCount = backup.killHistory?.length || 0;
-                return `<option value="${key}">${date.toLocaleString()} - ${aliveCount} alive, ${killCount} kills</option>`;
+                return `<option value="${key}">${date.toLocaleString()} - Main: ${mainCount}, Losers: ${losersCount}, ${killCount} kills</option>`;
             }).join('');
             
             showModal(
@@ -366,9 +453,10 @@
         document.getElementById('restore-btn').addEventListener('click', showRestoreOptions);
         
         document.getElementById('shuffle-btn').addEventListener('click', () => {
-            let activePlayers = gameState.players.filter(p => p.alive);
+            // only shuffle main bracket players
+            let activePlayers = gameState.players.filter(p => p.alive && p.bracket === 'main');
             if (activePlayers.length < 2) {
-                alert("You need at least 2 living players to shuffle.");
+                alert("You need at least 2 living players in the main bracket to shuffle.");
                 return;
             }
 
@@ -390,6 +478,31 @@
             });
             
             const newState = { ...gameState, players: newPlayersState, gameStarted: true };
+            updateFirestoreState(newState);
+        });
+
+        // shuffle losers bracket
+        document.getElementById('shuffle-losers-btn').addEventListener('click', () => {
+            let losersPlayers = gameState.players.filter(p => p.alive && p.bracket === 'losers');
+            if (losersPlayers.length < 2) {
+                alert("You need at least 2 players in the losers bracket to shuffle.");
+                return;
+            }
+
+            let shuffled = [...losersPlayers].sort(() => 0.5 - Math.random());
+            const words = getWordList();
+            const newPlayersState = JSON.parse(JSON.stringify(gameState.players));
+
+            shuffled.forEach((shuffledPlayer, i) => {
+                const target = shuffled[(i + 1) % shuffled.length];
+                const playerInState = newPlayersState.find(p => p.name === shuffledPlayer.name);
+                if (playerInState) {
+                    playerInState.target = target.name;
+                    playerInState.word = words[Math.floor(Math.random() * words.length)];
+                }
+            });
+            
+            const newState = { ...gameState, players: newPlayersState, losersBracketStarted: true };
             updateFirestoreState(newState);
         });
 
@@ -441,12 +554,22 @@
                 return;
             }
             
-            const options = alivePlayers.map(p => `<option value="${p.name}">${p.name} → ${p.target}</option>`).join('');
+            // group by bracket for better organization
+            const mainBracketOptions = alivePlayers.filter(p => p.bracket === 'main')
+                .map(p => `<option value="${p.name}">[MAIN] ${p.name} → ${p.target}</option>`).join('');
+            const losersBracketOptions = alivePlayers.filter(p => p.bracket === 'losers')
+                .map(p => `<option value="${p.name}">[LOSERS] ${p.name} → ${p.target}</option>`).join('');
+            
+            const allOptions = mainBracketOptions + losersBracketOptions;
             
             showModal(
                 'Record a Kill',
                 `<label for="killer-select" class="block mb-2 text-slate-400">Who got the kill?</label>
-                 <select id="killer-select" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2">${options}</select>`,
+                 <select id="killer-select" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 mb-4">${allOptions}</select>
+                 <div class="mb-4">
+                    <input type="checkbox" id="send-to-losers" class="mr-2" checked>
+                    <label for="send-to-losers" class="text-slate-400">Send victim to losers bracket (uncheck to eliminate completely)</label>
+                 </div>`,
                 [
                     `<button id="cancel-btn" class="bg-slate-600 hover:bg-slate-500 font-semibold py-2 px-4 rounded-lg">Cancel</button>`,
                     `<button id="confirm-kill-btn" class="bg-rose-600 hover:bg-rose-500 font-semibold py-2 px-4 rounded-lg">Confirm</button>`
@@ -457,6 +580,7 @@
             document.getElementById('confirm-kill-btn').onclick = () => {
                 const newPlayersState = JSON.parse(JSON.stringify(gameState.players));
                 const killerName = document.getElementById('killer-select').value;
+                const sendToLosers = document.getElementById('send-to-losers').checked;
                 const killer = newPlayersState.find(p => p.name === killerName);
                 const victim = newPlayersState.find(p => p.name === killer.target);
                 
@@ -469,19 +593,31 @@
                 const originalKillerTarget = killer.target;
                 const originalKillerWord = killer.word;
 
-                // Apply the kill
-                victim.alive = false;
+                // decide victim's fate
+                if (sendToLosers && victim.bracket === 'main') {
+                    // send to losers bracket instead of killing
+                    victim.bracket = 'losers';
+                    victim.target = null; // clear target, will need to be reshuffled
+                    victim.word = null;
+                } else {
+                    // eliminate completely (either from losers bracket or if unchecked)
+                    victim.alive = false;
+                }
+
+                // killer inherits target
                 killer.target = victim.target;
                 killer.word = getWordList()[Math.floor(Math.random() * getWordList().length)];
 
-                // Add the kill to history, now with the original state saved
+                // Add the kill to history with bracket info
                 const newKillHistory = [...(gameState.killHistory || []), {
                     killer: killer.name,
                     victim: victim.name,
-                    word: killer.word, // The new word for the killer
+                    word: killer.word,
                     timestamp: new Date().toLocaleTimeString(),
                     originalKillerTarget: originalKillerTarget,
-                    originalKillerWord: originalKillerWord
+                    originalKillerWord: originalKillerWord,
+                    bracket: killer.bracket,
+                    sentToLosers: sendToLosers && victim.bracket === 'main'
                 }];
 
                 const newState = { ...gameState, players: newPlayersState, killHistory: newKillHistory };
@@ -492,7 +628,7 @@
         
         document.getElementById('word-btn').addEventListener('click', () => {
             const alivePlayers = gameState.players.filter(p => p.alive);
-            const options = alivePlayers.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+            const options = alivePlayers.map(p => `<option value="${p.name}">[${p.bracket.toUpperCase()}] ${p.name}</option>`).join('');
             
             showModal(
                 'Assign New Word',
@@ -523,9 +659,11 @@
                 return;
             }
             
-            const options = gameState.killHistory.map((kill, index) => 
-                `<option value="${index}">${kill.killer} → ${kill.victim} (${kill.timestamp})</option>`
-            ).join('');
+            const options = gameState.killHistory.map((kill, index) => {
+                const bracketInfo = kill.bracket ? `[${kill.bracket.toUpperCase()}]` : '';
+                const losersInfo = kill.sentToLosers ? ' (→ losers)' : '';
+                return `<option value="${index}">${bracketInfo} ${kill.killer} → ${kill.victim}${losersInfo} (${kill.timestamp})</option>`;
+            }).join('');
 
             showModal(
                 'Undo a Kill',
@@ -542,7 +680,6 @@
                 const killIndexToUndo = parseInt(document.getElementById('undo-select').value);
                 const killToUndo = gameState.killHistory[killIndexToUndo];
 
-                // Smarter undo logic that does not reset the whole game
                 if (!killToUndo) {
                     alert("Could not find the specified kill.");
                     return;
@@ -566,17 +703,23 @@
                     return;
                 }
 
-                // 1. Revive the victim
-                victim.alive = true;
+                // undo the kill based on what happened
+                if (killToUndo.sentToLosers) {
+                    // victim was sent to losers, bring them back to main
+                    victim.bracket = 'main';
+                    victim.alive = true;
+                } else {
+                    // victim was eliminated, revive them to their original bracket
+                    victim.alive = true;
+                }
 
-                // 2. Restore the killer's state to what it was BEFORE the kill
+                // restore killer's original state
                 killer.target = killToUndo.originalKillerTarget;
                 killer.word = killToUndo.originalKillerWord;
 
-                // 3. Remove the undone kill from the history array
+                // remove from kill history
                 const newKillHistory = gameState.killHistory.filter((_, index) => index !== killIndexToUndo);
 
-                // 4. Update the game state in Firestore
                 const newState = { ...gameState, players: newPlayersState, killHistory: newKillHistory };
                 updateFirestoreState(newState);
                 closeModal();
@@ -590,7 +733,7 @@
                 return;
             }
 
-            const assassinOptions = alivePlayers.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+            const assassinOptions = alivePlayers.map(p => `<option value="${p.name}">[${p.bracket.toUpperCase()}] ${p.name}</option>`).join('');
 
             showModal(
                 'Set a Target',
@@ -603,6 +746,7 @@
                         <label for="target-select" class="block mb-2 text-slate-400">Target:</label>
                         <select id="target-select" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2"></select>
                     </div>
+                    <p class="text-xs text-amber-400">⚠️ Players can only target others in the same bracket</p>
                  </div>`,
                 [
                     `<button id="cancel-btn" class="bg-slate-600 hover:bg-slate-500 font-semibold py-2 px-4 rounded-lg">Cancel</button>`,
@@ -615,10 +759,12 @@
 
             function updateTargetOptions() {
                 const selectedAssassinName = assassinSelect.value;
+                const selectedAssassin = alivePlayers.find(p => p.name === selectedAssassinName);
+                // only show targets in same bracket
                 const targetOptions = alivePlayers
-                    .filter(p => p.name !== selectedAssassinName)
+                    .filter(p => p.name !== selectedAssassinName && p.bracket === selectedAssassin.bracket)
                     .map(p => `<option value="${p.name}">${p.name}</option>`).join('');
-                targetSelect.innerHTML = targetOptions;
+                targetSelect.innerHTML = targetOptions || '<option value="">No valid targets in same bracket</option>';
             }
 
             assassinSelect.onchange = updateTargetOptions;
@@ -662,11 +808,13 @@
                     name: name,
                     target: null,
                     word: null,
-                    alive: true
+                    alive: true,
+                    bracket: 'main' // everyone starts in main bracket
                 })),
                 killHistory: [],
                 gameStarted: false,
-                version: 2, // add version to track schema changes
+                losersBracketStarted: false,
+                version: 3, // bump version for losers bracket support
             };
         }
         
