@@ -48,6 +48,23 @@
                 Verbal Assassins
             </h1>
             <p class="text-slate-400">A real-time multiplayer assassination game for our group.</p>
+            
+            <!-- Bracket Selector -->
+            <div class="mt-6 mb-4">
+                <div class="inline-flex rounded-lg bg-slate-800 p-1">
+                    <button id="main-bracket-btn" class="px-6 py-2 rounded-md font-semibold transition-all duration-200 bg-indigo-600 text-white">
+                        🏆 Main Bracket
+                    </button>
+                    <button id="losers-bracket-btn" class="px-6 py-2 rounded-md font-semibold transition-all duration-200 text-slate-400 hover:text-white">
+                        💀 Losers Bracket
+                    </button>
+                </div>
+            </div>
+            
+            <div id="bracket-indicator" class="text-lg font-bold mb-2">
+                <span class="text-indigo-400">Currently viewing: Main Bracket</span>
+            </div>
+            
             <div id="user-info" class="mt-4 text-xs text-slate-500 bg-slate-800 rounded-md p-2 inline-block">
                 Connecting...
             </div>
@@ -114,6 +131,7 @@
 
         // --- GLOBAL VARIABLES & CONFIG ---
         const appId = 'default-verbal-assassins';
+        let currentBracket = 'main'; // track which bracket we're viewing
 
         // Your web app's Firebase configuration
         const firebaseConfig = {
@@ -137,6 +155,42 @@
         const modalContainer = document.getElementById('modal-container');
         const modalContent = document.getElementById('modal-content');
         const lastSaveInfo = document.getElementById('last-save-info');
+        const bracketIndicator = document.getElementById('bracket-indicator');
+
+        // bracket switching
+        const mainBracketBtn = document.getElementById('main-bracket-btn');
+        const losersBracketBtn = document.getElementById('losers-bracket-btn');
+
+        // --- BRACKET SWITCHING ---
+        
+        mainBracketBtn.addEventListener('click', () => {
+            if (currentBracket !== 'main') {
+                currentBracket = 'main';
+                updateBracketUI();
+                if (userId) connectToGame();
+            }
+        });
+
+        losersBracketBtn.addEventListener('click', () => {
+            if (currentBracket !== 'losers') {
+                currentBracket = 'losers';
+                updateBracketUI();
+                if (userId) connectToGame();
+            }
+        });
+
+        function updateBracketUI() {
+            // update button styles
+            if (currentBracket === 'main') {
+                mainBracketBtn.className = "px-6 py-2 rounded-md font-semibold transition-all duration-200 bg-indigo-600 text-white";
+                losersBracketBtn.className = "px-6 py-2 rounded-md font-semibold transition-all duration-200 text-slate-400 hover:text-white";
+                bracketIndicator.innerHTML = '<span class="text-indigo-400">Currently viewing: Main Bracket</span>';
+            } else {
+                mainBracketBtn.className = "px-6 py-2 rounded-md font-semibold transition-all duration-200 text-slate-400 hover:text-white";
+                losersBracketBtn.className = "px-6 py-2 rounded-md font-semibold transition-all duration-200 bg-rose-600 text-white";
+                bracketIndicator.innerHTML = '<span class="text-rose-400">Currently viewing: Losers Bracket</span>';
+            }
+        }
 
         // --- INITIALIZATION ---
 
@@ -170,7 +224,18 @@
         // --- FIRESTORE REAL-TIME CONNECTION ---
 
         async function connectToGame() {
-            const gameDocRef = doc(db, `artifacts/${appId}/public/data/games`, "verbal-assassins-game-specific");
+            // unsubscribe from previous game if switching brackets
+            if (gameUnsubscribe) {
+                gameUnsubscribe();
+                gameUnsubscribe = null;
+            }
+
+            // use different document IDs for main and losers brackets
+            const gameDocId = currentBracket === 'main' 
+                ? "verbal-assassins-game-specific" 
+                : "verbal-assassins-losers-bracket";
+            
+            const gameDocRef = doc(db, `artifacts/${appId}/public/data/games`, gameDocId);
 
             try {
                 // first, check if document exists to avoid accidental resets
@@ -178,10 +243,11 @@
                 
                 if (!docSnap.exists()) {
                     // instead of auto-creating, ask the user
+                    const bracketName = currentBracket === 'main' ? 'Main Bracket' : 'Losers Bracket';
                     loadingEl.innerHTML = `
-                        <p class="text-lg text-amber-400 mb-4">No game found!</p>
-                        <p class="text-slate-400 mb-4">Would you like to start a new game?</p>
-                        <button id="create-new-game" class="bg-green-600 hover:bg-green-500 text-white font-semibold py-2 px-5 rounded-lg">Create New Game</button>
+                        <p class="text-lg text-amber-400 mb-4">No ${bracketName} game found!</p>
+                        <p class="text-slate-400 mb-4">Would you like to start a new ${bracketName} game?</p>
+                        <button id="create-new-game" class="bg-green-600 hover:bg-green-500 text-white font-semibold py-2 px-5 rounded-lg">Create New ${bracketName} Game</button>
                     `;
                     
                     document.getElementById('create-new-game').addEventListener('click', async () => {
@@ -277,7 +343,11 @@
         // --- GAME ACTIONS (WRITING TO FIRESTORE) ---
 
         async function updateFirestoreState(newState) {
-            const gameDocRef = doc(db, `artifacts/${appId}/public/data/games`, "verbal-assassins-game-specific");
+            const gameDocId = currentBracket === 'main' 
+                ? "verbal-assassins-game-specific" 
+                : "verbal-assassins-losers-bracket";
+            const gameDocRef = doc(db, `artifacts/${appId}/public/data/games`, gameDocId);
+            
             try {
                 // add timestamp to track when changes happen
                 newState.lastUpdated = serverTimestamp();
@@ -290,40 +360,43 @@
             }
         }
 
-        // backup functionality
+        // backup functionality - now includes bracket info
         async function saveBackup() {
             const backupData = {
                 ...gameState,
                 backupDate: new Date().toISOString(),
-                backupBy: userId
+                backupBy: userId,
+                bracket: currentBracket // remember which bracket this backup is from
             };
             
-            // store in browser's local storage with timestamp
-            const backupKey = `verbal-assassins-backup-${new Date().getTime()}`;
+            // store in browser's local storage with timestamp and bracket
+            const backupKey = `verbal-assassins-backup-${currentBracket}-${new Date().getTime()}`;
             localStorage.setItem(backupKey, JSON.stringify(backupData));
             
-            // also store reference to latest backup
-            localStorage.setItem('verbal-assassins-latest-backup', backupKey);
+            // also store reference to latest backup for this bracket
+            localStorage.setItem(`verbal-assassins-latest-backup-${currentBracket}`, backupKey);
             
-            // keep only last 5 backups to save space
-            const allKeys = Object.keys(localStorage).filter(k => k.startsWith('verbal-assassins-backup-'));
+            // keep only last 5 backups per bracket to save space
+            const allKeys = Object.keys(localStorage).filter(k => k.startsWith(`verbal-assassins-backup-${currentBracket}-`));
             if (allKeys.length > 5) {
                 allKeys.sort();
                 const toRemove = allKeys.slice(0, allKeys.length - 5);
                 toRemove.forEach(key => localStorage.removeItem(key));
             }
             
-            alert(`Backup saved! (${new Date().toLocaleTimeString()})`);
+            const bracketName = currentBracket === 'main' ? 'Main Bracket' : 'Losers Bracket';
+            alert(`${bracketName} backup saved! (${new Date().toLocaleTimeString()})`);
         }
 
         async function showRestoreOptions() {
             const allBackups = Object.keys(localStorage)
-                .filter(k => k.startsWith('verbal-assassins-backup-'))
+                .filter(k => k.startsWith(`verbal-assassins-backup-${currentBracket}-`))
                 .sort()
                 .reverse();
             
             if (allBackups.length === 0) {
-                alert("No backups found in your browser.");
+                const bracketName = currentBracket === 'main' ? 'Main Bracket' : 'Losers Bracket';
+                alert(`No backups found for ${bracketName} in your browser.`);
                 return;
             }
             
@@ -335,11 +408,12 @@
                 return `<option value="${key}">${date.toLocaleString()} - ${aliveCount} alive, ${killCount} kills</option>`;
             }).join('');
             
+            const bracketName = currentBracket === 'main' ? 'Main Bracket' : 'Losers Bracket';
             showModal(
-                'Restore from Backup',
+                `Restore ${bracketName} from Backup`,
                 `<label for="backup-select" class="block mb-2 text-slate-400">Select a backup to restore:</label>
                  <select id="backup-select" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 mb-4">${options}</select>
-                 <p class="text-amber-400 text-sm">⚠️ This will overwrite the current game state!</p>`,
+                 <p class="text-amber-400 text-sm">⚠️ This will overwrite the current ${bracketName} game state!</p>`,
                 [
                     `<button id="cancel-btn" class="bg-slate-600 hover:bg-slate-500 font-semibold py-2 px-4 rounded-lg">Cancel</button>`,
                     `<button id="confirm-restore-btn" class="bg-teal-600 hover:bg-teal-500 font-semibold py-2 px-4 rounded-lg">Restore</button>`
@@ -354,6 +428,7 @@
                 // remove backup metadata before restoring
                 delete backupData.backupDate;
                 delete backupData.backupBy;
+                delete backupData.bracket;
                 
                 await updateFirestoreState(backupData);
                 closeModal();
@@ -394,9 +469,10 @@
         });
 
         document.getElementById('reset-btn').addEventListener('click', () => {
+            const bracketName = currentBracket === 'main' ? 'Main Bracket' : 'Losers Bracket';
             showModal(
-                'Confirm Reset',
-                '<p>Are you sure you want to reset the game? This will restore the original player list and clear all kills and targets.</p><p class="text-amber-400 text-sm mt-2">💡 Tip: Save a backup first!</p>',
+                `Confirm Reset ${bracketName}`,
+                `<p>Are you sure you want to reset the ${bracketName} game? This will restore the original player list and clear all kills and targets.</p><p class="text-amber-400 text-sm mt-2">💡 Tip: Save a backup first!</p>`,
                 [
                     `<button id="cancel-btn" class="bg-slate-600 hover:bg-slate-500 font-semibold py-2 px-4 rounded-lg">Cancel</button>`,
                     `<button id="confirm-reset-btn" class="bg-rose-600 hover:bg-rose-500 font-semibold py-2 px-4 rounded-lg">Confirm Reset</button>`
@@ -667,6 +743,7 @@
                 killHistory: [],
                 gameStarted: false,
                 version: 2, // add version to track schema changes
+                bracket: currentBracket // track which bracket this is
             };
         }
         
