@@ -147,7 +147,8 @@
         let userId = null;
         let gameUnsubscribe = null;
         let gameState = {};
-        let commonWords = [];
+        let mainBracketWords = []; // words for main bracket (501-3001)
+        let losersBracketWords = []; // words for losers bracket (300-1000)
 
         const loadingEl = document.getElementById('loading');
         const gameContentEl = document.getElementById('game-content');
@@ -195,7 +196,7 @@
         // --- INITIALIZATION ---
 
         async function main() {
-            await loadWordList(); 
+            await loadWordLists(); 
 
             try {
                 app = initializeApp(firebaseConfig);
@@ -747,7 +748,8 @@
             };
         }
         
-        async function loadWordList() {
+        // now loads different word ranges for different brackets
+        async function loadWordLists() {
             try {
                 const response = await fetch('4000-most-common-english-words-csv.csv');
                 if (!response.ok) {
@@ -756,19 +758,35 @@
                 const csvContent = await response.text();
                 
                 const lines = csvContent.split(/\r?\n/);
-                const words = [];
                 
+                // load main bracket words (501-3001)
+                const mainWords = [];
                 for (let i = 501; i <= 3001 && i < lines.length; i++) {
                     const word = lines[i].replace(/\r/g, '').trim();
                     if (word) {
-                        words.push(word);
+                        mainWords.push(word);
                     }
                 }
-                commonWords = words;
-                console.log(`Successfully loaded ${commonWords.length} words from CSV.`);
+                
+                // load losers bracket words (300-1000) 
+                const losersWords = [];
+                for (let i = 300; i <= 1000 && i < lines.length; i++) {
+                    const word = lines[i].replace(/\r/g, '').trim();
+                    if (word) {
+                        losersWords.push(word);
+                    }
+                }
+                
+                mainBracketWords = mainWords;
+                losersBracketWords = losersWords;
+                
+                console.log(`Successfully loaded ${mainBracketWords.length} words for main bracket (501-3001).`);
+                console.log(`Successfully loaded ${losersBracketWords.length} words for losers bracket (300-1000).`);
             } catch (error) {
-                console.warn('Could not load CSV file. Using fallback word list.', error);
-                commonWords = [
+                console.warn('Could not load CSV file. Using fallback word lists.', error);
+                
+                // fallback word lists - different for each bracket
+                mainBracketWords = [
                     'doctor', 'wall', 'patient', 'worker', 'news', 'test', 'movie', 'certain',
                     'north', 'love', 'personal', 'open', 'support', 'simply', 'third',
                     'technology', 'catch', 'step', 'baby', 'computer', 'type', 'attention',
@@ -779,11 +797,22 @@
                     'plant', 'likely', 'opportunity', 'term', 'chair', 'protect', 'parent',
                     'interview', 'yesterday', 'sell', 'fire', 'particularly', 'forget', 'cold'
                 ];
+                
+                // easier words for losers bracket fallback
+                losersBracketWords = [
+                    'cat', 'dog', 'house', 'car', 'book', 'water', 'food', 'table',
+                    'chair', 'phone', 'door', 'window', 'tree', 'grass', 'sun', 'moon',
+                    'star', 'sky', 'blue', 'red', 'green', 'yellow', 'black', 'white',
+                    'big', 'small', 'happy', 'sad', 'good', 'bad', 'hot', 'cold',
+                    'fast', 'slow', 'run', 'walk', 'jump', 'sit', 'stand', 'eat',
+                    'drink', 'sleep', 'work', 'play', 'read', 'write', 'speak', 'listen'
+                ];
             }
         }
 
+        // returns the appropriate word list based on current bracket
         function getWordList() {
-            return commonWords;
+            return currentBracket === 'main' ? mainBracketWords : losersBracketWords;
         }
 
         // --- START THE APP ---
