@@ -5,270 +5,138 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sebastian Griego | Math</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+            font-family: Georgia, 'Times New Roman', serif;
             line-height: 1.6;
-            color: #333;
+            color: #000;
             background: #fff;
-        }
-
-        header {
-            background: #fff;
-            border-bottom: 1px solid #e0e0e0;
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-        }
-
-        nav {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .nav-name {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #333;
-            text-decoration: none;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-            list-style: none;
-        }
-
-        .nav-links a {
-            color: #666;
-            text-decoration: none;
-            font-size: 0.95rem;
-            transition: color 0.3s;
-        }
-
-        .nav-links a:hover {
-            color: #333;
-        }
-
-        main {
             max-width: 800px;
             margin: 0 auto;
-            padding: 2rem;
-            margin-top: 80px;
+            padding: 20px;
         }
 
-        .hero {
-            padding: 4rem 0;
+        .header {
             text-align: center;
+            margin-bottom: 40px;
         }
 
-        .hero h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            color: #222;
+        .header img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 20px;
         }
 
-        .hero .tagline {
-            font-size: 1.25rem;
+        h1 {
+            font-size: 24px;
+            margin: 10px 0;
+        }
+
+        .tagline {
+            font-size: 16px;
             color: #666;
-            margin-bottom: 1.5rem;
-        }
-
-        .hero .institution {
-            font-size: 1rem;
-            color: #888;
-        }
-
-        section {
-            margin: 4rem 0;
+            margin-bottom: 30px;
         }
 
         h2 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            color: #333;
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 0.5rem;
-        }
-
-        .about {
-            font-size: 1rem;
-            line-height: 1.8;
-            color: #555;
+            font-size: 18px;
+            margin: 30px 0 15px 0;
+            border-bottom: 1px solid #ccc;
         }
 
         .about p {
-            margin-bottom: 1rem;
+            margin-bottom: 15px;
+            text-align: justify;
         }
 
-        .projects-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-top: 2rem;
+        .projects {
+            margin: 30px 0;
         }
 
-        .project-card {
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 1.5rem;
+        .project {
+            margin-bottom: 20px;
+        }
+
+        .project h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .project a {
+            color: #0000ff;
             text-decoration: none;
-            color: inherit;
-            transition: all 0.3s;
-            background: #fafafa;
         }
 
-        .project-card:hover {
-            border-color: #666;
-            background: #fff;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-
-        .project-card h3 {
-            font-size: 1.1rem;
-            margin-bottom: 0.5rem;
-            color: #333;
-        }
-
-        .project-card p {
-            font-size: 0.9rem;
-            color: #666;
-            line-height: 1.5;
-        }
-
-        .contact {
-            text-align: center;
-            padding: 2rem;
-            background: #f8f8f8;
-            border-radius: 8px;
-        }
-
-        .contact-links {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-top: 1.5rem;
-        }
-
-        .contact-links a {
-            color: #666;
-            text-decoration: none;
-            font-size: 0.95rem;
-            transition: color 0.3s;
-        }
-
-        .contact-links a:hover {
-            color: #333;
+        .project a:hover {
             text-decoration: underline;
         }
 
-        footer {
-            text-align: center;
-            padding: 2rem;
-            color: #999;
-            font-size: 0.85rem;
-            border-top: 1px solid #e0e0e0;
-            margin-top: 4rem;
+        .project p {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 10px;
         }
 
-        @media (max-width: 768px) {
-            nav {
-                flex-direction: column;
-                gap: 1rem;
-            }
+        .contact {
+            margin: 40px 0;
+        }
 
-            .nav-links {
-                gap: 1.5rem;
-            }
+        .contact a {
+            color: #0000ff;
+            text-decoration: none;
+        }
 
-            main {
-                margin-top: 120px;
-            }
+        .contact a:hover {
+            text-decoration: underline;
+        }
 
-            .hero h1 {
-                font-size: 2rem;
-            }
-
-            .projects-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .contact-links {
-                flex-direction: column;
-                gap: 1rem;
-            }
+        hr {
+            margin: 40px 0;
+            border: none;
+            border-top: 1px solid #ccc;
         }
     </style>
 </head>
 <body>
-    <header>
-        <nav>
-            <a href="#" class="nav-name">Sebastian Griego</a>
-            <ul class="nav-links">
-                <li><a href="#about">About</a></li>
-                <li><a href="#projects">Projects</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
-        </nav>
-    </header>
+    <div class="header">
+        <img src="Snapchat-1305767540~2.jpg" alt="Sebastian Griego">
+        <h1>Sebastian Griego</h1>
+        <p class="tagline">Math Student</p>
+    </div>
 
-    <main>
-        <section class="hero">
-            <h1>Sebastian Griego</h1>
-            <p class="tagline">Mathematics Student</p>
-        </section>
+    <h2>About</h2>
+    <div class="about">
+        <p>
+            I enjoy working on projects that bridge pure mathematics with practical applications, particularly in areas involving 
+            algebraic structures, geometric visualization, and mathematical education. I also have significant experience in mathematical biology and disease modeling. I have done research using physics-informed neural networks to model HIV infection dynamics.
+        </p>
+        <p>
+            Currently, I'm interested in LLM-assisted theorem proving in Lean 4, including both autoformalization and direct proof synthesis from formal statements. My goal is to explore how language models can accelerate mathematical formalization and verification workflows. I spend much of my time working on these types of problems.
+        </p>
+    </div>
 
-        <section id="about" class="about">
-            <h2>About</h2>
-            <p>
-                I enjoy working on projects that bridge pure mathematics with practical applications, particularly in areas involving 
-                algebraic structures, geometric visualization, and mathematical education.
-            </p>
-            <p>
-                Currently, I am focused on training large language models to improve their mathematical proof formalization capabilities in Lean. 
-                I am particularly interested in enhancing LLMs' proof-solving abilities and developing better methods for automated theorem proving.
-            </p>
-        </section>
+    <h2>Software</h2>
+    <div class="projects">
+        <div class="project">
+            <h3><a href="https://github.com/sebastian-griego/BetterFFTW" target="_blank">BetterFFTW</a></h3>
+            <p>High-performance wrapper around pyFFTW with automatic optimization and drop-in NumPy/SciPy FFT replacement.</p>
+        </div>
+        <div class="project">
+            <h3><a href="https://github.com/sebastian-griego/pycontinuum" target="_blank">PyContinuum</a></h3>
+            <p>Pure Python library for solving polynomial systems using numerical homotopy continuation methods.</p>
+        </div>
+        <div class="project">
+            <h3><a href="https://github.com/sebastian-griego/Mazewright" target="_blank">Mazewright</a></h3>
+            <p>Python library for generating and manipulating mazes with various algorithms and customization options.</p>
+        </div>
+    </div>
 
-        <section id="projects">
-            <h2>Software</h2>
-            <div class="projects-grid">
-                <a href="https://github.com/sebastian-griego/BetterFFTW" class="project-card" target="_blank">
-                    <h3>BetterFFTW</h3>
-                    <p>High-performance wrapper around pyFFTW with automatic optimization and drop-in NumPy/SciPy FFT replacement.</p>
-                </a>
-                <a href="https://github.com/sebastian-griego/pycontinuum" class="project-card" target="_blank">
-                    <h3>PyContinuum</h3>
-                    <p>Pure Python library for solving polynomial systems using numerical homotopy continuation methods.</p>
-                </a>
-                <a href="https://github.com/sebastian-griego/Mazewright" class="project-card" target="_blank">
-                    <h3>Mazewright</h3>
-                    <p>Python library for generating and manipulating mazes with various algorithms and customization options.</p>
-                </a>
-            </div>
-        </section>
+    <hr>
 
-        <section id="contact" class="contact">
-            <h2>Contact</h2>
-            <div class="contact-links">
-                <a href="mailto:sebastianngriego@gmail.com">sebastianngriego@gmail.com</a>
-            </div>
-        </section>
-
-    </main>
+    <div class="contact">
+        <a href="mailto:sebastianngriego@gmail.com">sebastianngriego@gmail.com</a>
+    </div>
 
 </body>
 </html>
