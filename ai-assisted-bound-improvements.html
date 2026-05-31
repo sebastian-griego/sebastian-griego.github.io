@@ -56,11 +56,6 @@
             font-size: 0.95em;
         }
 
-        .status-note {
-            color: #555;
-            font-size: 14px;
-        }
-
         .table-wrap {
             overflow-x: auto;
             margin: 20px 0;
@@ -102,12 +97,11 @@
     <header class="note-header">
         <p><a href="index.html">Sebastian Griego</a></p>
         <h1>Six AI-assisted bound improvements for optimization constants</h1>
-        <p class="status-note">PR status checked May 31, 2026.</p>
     </header>
 
     <main>
         <p>
-            In May 2026, I ran an experiment in LLM-assisted mathematical discovery using <a href="https://openai.com/index/introducing-gpt-5-5/" target="_blank" rel="noopener noreferrer">GPT-5.5 Pro</a> in ChatGPT as part of a human-checked workflow. The target was the <a href="https://github.com/teorth/optimizationproblems" target="_blank" rel="noopener noreferrer"><em>Optimization Constants in Mathematics</em></a> repository, a curated collection of best known bounds for mathematical constants. The experiment produced six new bound-improvement certificates for entries 3a, 3c, 10c, 42, 45, and 59. Five have been merged into the repository, and one was pending review when this note was added.
+            In May 2026, I ran an experiment in LLM-assisted mathematical discovery using GPT-5.5 Pro in ChatGPT as part of a human-checked workflow. The target was the <a href="https://github.com/teorth/optimizationproblems" target="_blank" rel="noopener noreferrer"><em>Optimization Constants in Mathematics</em></a> repository, a curated collection of best known bounds for mathematical constants. The experiment produced six new bound-improvement certificates for entries 3a, 3c, 10c, 42, 45, and 59.
         </p>
 
         <p>
@@ -166,10 +160,6 @@
             </table>
         </div>
 
-        <h2>Lessons</h2>
-        <p>
-            The useful LLM behavior was proposing candidate constructions, turning them into small verification programs, and iterating on exposition quickly enough to make the search practical. The parts that stayed human-checked were problem selection, sanity checks against the literature, rerunning verifiers, choosing conservative public claims, and matching the repository's review model.
-        </p>
     </main>
 </body>
 </html>
