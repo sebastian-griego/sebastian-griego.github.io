@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Six AI-assisted bound improvements | Sebastian Griego</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #000;
+            background: #fff;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .note-header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .note-header p {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin: 10px 0;
+            line-height: 1.3;
+        }
+
+        h2 {
+            font-size: 18px;
+            margin: 30px 0 15px 0;
+            border-bottom: 1px solid #ccc;
+        }
+
+        p {
+            margin-bottom: 15px;
+        }
+
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        code {
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 0.95em;
+        }
+
+        .status-note {
+            color: #555;
+            font-size: 14px;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        table {
+            width: 100%;
+            min-width: 720px;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            vertical-align: top;
+        }
+
+        th {
+            background: #f3f3f3;
+            text-align: left;
+        }
+
+        td:first-child {
+            text-align: right;
+            white-space: nowrap;
+            font-weight: bold;
+        }
+
+        hr {
+            margin: 40px 0;
+            border: none;
+            border-top: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <header class="note-header">
+        <p><a href="index.html">Sebastian Griego</a></p>
+        <h1>Six AI-assisted bound improvements for optimization constants</h1>
+        <p class="status-note">PR status checked May 31, 2026.</p>
+    </header>
+
+    <main>
+        <p>
+            In May 2026, I ran an experiment in LLM-assisted mathematical discovery using <a href="https://openai.com/index/introducing-gpt-5-5/" target="_blank" rel="noopener noreferrer">GPT-5.5 Pro</a> in ChatGPT as part of a human-checked workflow. The target was the <a href="https://github.com/teorth/optimizationproblems" target="_blank" rel="noopener noreferrer"><em>Optimization Constants in Mathematics</em></a> repository, a curated collection of best known bounds for mathematical constants. The experiment produced six new bound-improvement certificates for entries 3a, 3c, 10c, 42, 45, and 59. Five have been merged into the repository, and one was pending review when this note was added.
+        </p>
+
+        <p>
+            The repository notes that submissions are reviewed for minimal plausibility and replicability, but are not certified by the site for correctness. I use "merged" below in that sense: these are reviewable certificates and computations, not a claim of independent theorem certification by the repository.
+        </p>
+
+        <h2>Pull Requests</h2>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Entry</th>
+                        <th>Object</th>
+                        <th>Contribution</th>
+                        <th>PR and verification</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>3a</td>
+                        <td>Gyarmati-Hennecart-Ruzsa sum-difference constant</td>
+                        <td>Lower bound improved to <code>1.1740744</code>; merged.</td>
+                        <td><a href="https://github.com/teorth/optimizationproblems/pull/71" target="_blank" rel="noopener noreferrer">PR #71</a>; finite digit construction and exact counting verifier in the PR.</td>
+                    </tr>
+                    <tr>
+                        <td>3c</td>
+                        <td>4-slope Kakeya-type sum-difference constant</td>
+                        <td>Lower bound improved to <code>1.67473389</code>; merged.</td>
+                        <td><a href="https://github.com/teorth/optimizationproblems/pull/70" target="_blank" rel="noopener noreferrer">PR #70</a>; 26-point entropy construction and high-precision verifier in the PR.</td>
+                    </tr>
+                    <tr>
+                        <td>10c</td>
+                        <td>Spencer discrepancy constant</td>
+                        <td>Lower bound improved to <code>4/sqrt(6)</code>; merged.</td>
+                        <td><a href="https://github.com/teorth/optimizationproblems/pull/74" target="_blank" rel="noopener noreferrer">PR #74</a>; 6 by 6 sign-matrix certificate checked by exhaustive enumeration.</td>
+                    </tr>
+                    <tr>
+                        <td>42</td>
+                        <td>Turan's pure power sum constant</td>
+                        <td>Proposed upper bound improved to <code>0.6906538</code>; open as of May 31, 2026.</td>
+                        <td><a href="https://github.com/teorth/optimizationproblems/pull/85" target="_blank" rel="noopener noreferrer">PR #85</a>; proof note, exact verifier, and exported certificate data in a <a href="https://github.com/sebastian-griego/turan-c42-certificate/tree/v1.0.0" target="_blank" rel="noopener noreferrer">certificate repository</a>.</td>
+                    </tr>
+                    <tr>
+                        <td>45</td>
+                        <td>Romanoff's constant</td>
+                        <td>Upper-density bound improved to below <code>0.490249407811155</code>; merged.</td>
+                        <td><a href="https://github.com/teorth/optimizationproblems/pull/82" target="_blank" rel="noopener noreferrer">PR #82</a>; exact verifier in the <a href="https://github.com/sebastian-griego/c45-romanoff-certificate/tree/v1-c45-certificate" target="_blank" rel="noopener noreferrer">Romanoff certificate repository</a>.</td>
+                    </tr>
+                    <tr>
+                        <td>59</td>
+                        <td>Bohr radius for the bidisc</td>
+                        <td>Upper bound improved to below <code>0.3174541</code>; merged.</td>
+                        <td><a href="https://github.com/teorth/optimizationproblems/pull/75" target="_blank" rel="noopener noreferrer">PR #75</a>; rational-inner Fejer certificate and exact integer verifier in the PR.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2>Lessons</h2>
+        <p>
+            The useful LLM behavior was proposing candidate constructions, turning them into small verification programs, and iterating on exposition quickly enough to make the search practical. The parts that stayed human-checked were problem selection, sanity checks against the literature, rerunning verifiers, choosing conservative public claims, and matching the repository's review model.
+        </p>
+    </main>
+</body>
+</html>

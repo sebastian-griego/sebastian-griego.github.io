@@ -51,6 +51,32 @@
             text-align: justify;
         }
 
+        .feature-note {
+            margin: 30px 0;
+            padding: 14px 16px;
+            border-left: 3px solid #666;
+            background: #f7f7f7;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .feature-note p {
+            margin: 0 0 10px 0;
+        }
+
+        .feature-note p:last-child {
+            margin-bottom: 0;
+        }
+
+        .feature-note a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        .feature-note a:hover {
+            text-decoration: underline;
+        }
+
         .side-note {
             margin: 30px 0;
             color: #333;
@@ -119,6 +145,15 @@
         </p>
         <p>
             Broadly, I am interested in making formal methods more useful to mathematicians: translating informal arguments into checkable artifacts, building better evaluation workflows around proof assistants, and understanding where AI can help without losing the guarantees that make formal verification valuable.
+        </p>
+    </div>
+
+    <div class="feature-note">
+        <p>
+            <strong>AI-assisted mathematical discovery.</strong> In May 2026, I used GPT-5.5 Pro in ChatGPT as part of a human-checked workflow to produce <a href="ai-assisted-bound-improvements.html">six new bound-improvement certificates</a> for the <a href="https://github.com/teorth/optimizationproblems" target="_blank" rel="noopener noreferrer"><em>Optimization Constants in Mathematics</em></a> repository: 3a, 3c, 10c, 42, 45, and 59. Five of the corresponding pull requests have been merged into the repository maintained by Damek Davis, Paata Ivanisvili, and Terence Tao, with the 42 improvement pending review as of May 31, 2026.
+        </p>
+        <p>
+            The short note collects the PRs, certificates, verification scripts, and lessons from the experiment.
         </p>
     </div>
 
