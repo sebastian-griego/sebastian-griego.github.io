@@ -6,6 +6,13 @@ Personal GitHub Pages site for math, formal verification, Lean 4, and related pr
 
 This is a static site with no build step. Open `index.html` directly in a browser to preview changes.
 
+Useful checks before publishing:
+
+```bash
+python -m http.server 8000
+python -c "from html.parser import HTMLParser; from pathlib import Path; pages=('index.html','ai-assisted-bound-improvements.html','estimathon/index.html','smart_snake/index.html','math_genealogy/index.html'); [HTMLParser().feed(Path(p).read_text(encoding='utf-8')) for p in pages]; print('html parse ok')"
+```
+
 ## Deployment
 
 GitHub Pages serves the `main` branch at:
