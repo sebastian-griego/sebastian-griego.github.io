@@ -3,8 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sebastian Griego's math and formal verification work, including Lean 4, autoformalization, proof synthesis, and AI-assisted mathematical discovery.">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="canonical" href="https://sebastian-griego.github.io/">
+    <meta property="og:title" content="Sebastian Griego | Math">
+    <meta property="og:description" content="Math, formal verification, Lean 4, autoformalization, and AI-assisted mathematical discovery.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://sebastian-griego.github.io/">
+    <meta name="twitter:card" content="summary">
     <title>Sebastian Griego | Math</title>
     <style>
+        .skip-link {
+            position: absolute;
+            left: -999px;
+            top: 12px;
+            background: #fff;
+            color: #0066cc;
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+        }
+
+        .skip-link:focus {
+            left: 12px;
+        }
+
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
@@ -129,43 +151,46 @@
     </style>
 </head>
 <body>
-    <div class="top-header">
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header class="top-header">
         <h1>Sebastian Griego</h1>
-        <div class="header-links">
+        <nav class="header-links" aria-label="Primary">
             <a href="https://github.com/sebastian-griego">GitHub</a>
-        </div>
-    </div>
+        </nav>
+    </header>
 
     <img src="Snapchat-1305767540~2.jpg" alt="Sebastian Griego" class="profile-img">
 
-    <h2>About</h2>
-    <div class="about">
-        <p>
-            Currently, I work on formal verification and AI for math. I am especially interested in LLM-assisted theorem proving in Lean 4, including autoformalization, proof synthesis from formal statements, and the practical question of how theorem provers can fit into everyday mathematical work. I also do some work with <a href="https://caj.al/" target="_blank" rel="noopener noreferrer">Cajal</a> on problems in this area.
-        </p>
-        <p>
-            Broadly, I am interested in making formal methods more useful to mathematicians: translating informal arguments into checkable artifacts, building better evaluation workflows around proof assistants, and understanding where AI can help without losing the guarantees that make formal verification valuable.
-        </p>
-    </div>
+    <main id="content">
+        <h2>About</h2>
+        <div class="about">
+            <p>
+                Currently, I work on formal verification and AI for math. I am especially interested in LLM-assisted theorem proving in Lean 4, including autoformalization, proof synthesis from formal statements, and the practical question of how theorem provers can fit into everyday mathematical work. I also do some work with <a href="https://caj.al/" target="_blank" rel="noopener noreferrer">Cajal</a> on problems in this area.
+            </p>
+            <p>
+                Broadly, I am interested in making formal methods more useful to mathematicians: translating informal arguments into checkable artifacts, building better evaluation workflows around proof assistants, and understanding where AI can help without losing the guarantees that make formal verification valuable.
+            </p>
+        </div>
 
-    <div class="feature-note">
-        <p>
-            <strong>AI-assisted mathematical discovery.</strong> In May 2026, I used GPT-5.5 Pro in ChatGPT as part of a human-checked workflow to produce <a href="ai-assisted-bound-improvements.html">six new bound-improvement certificates</a> for the <a href="https://github.com/teorth/optimizationproblems" target="_blank" rel="noopener noreferrer"><em>Optimization Constants in Mathematics</em></a> repository: 3a, 3c, 10c, 42, 45, and 59. Five of the corresponding pull requests have been merged into the repository maintained by Damek Davis, Paata Ivanisvili, and Terence Tao, with the 42 improvement pending review as of May 31, 2026.
+        <div class="feature-note">
+            <p>
+                <strong>AI-assisted mathematical discovery.</strong> In May 2026, I used GPT-5.5 Pro in ChatGPT as part of a human-checked workflow to produce <a href="ai-assisted-bound-improvements.html">six new bound-improvement certificates</a> for the <a href="https://github.com/teorth/optimizationproblems" target="_blank" rel="noopener noreferrer"><em>Optimization Constants in Mathematics</em></a> repository: 3a, 3c, 10c, 42, 45, and 59. Five of the corresponding pull requests have been merged into the repository maintained by Damek Davis, Paata Ivanisvili, and Terence Tao, with the 42 improvement pending review as of May 31, 2026.
+            </p>
+            <p>
+                The short note collects the PRs, certificates, verification scripts, and lessons from the experiment.
+            </p>
+        </div>
+
+        <p class="side-note">
+            I also made a <a href="https://www.overleaf.com/latex/templates/latex-parchment-paper/bkdfxyrghhgr" target="_blank" rel="noopener noreferrer">LaTeX parchment paper template</a> for fun.
         </p>
-        <p>
-            The short note collects the PRs, certificates, verification scripts, and lessons from the experiment.
-        </p>
-    </div>
 
-    <p class="side-note">
-        I also made a <a href="https://www.overleaf.com/latex/templates/latex-parchment-paper/bkdfxyrghhgr" target="_blank" rel="noopener noreferrer">LaTeX parchment paper template</a> for fun.
-    </p>
+        <hr>
 
-    <hr>
-
-    <div class="contact">
-        <a href="mailto:sebastianngriego@gmail.com">sebastianngriego@gmail.com</a>
-    </div>
+        <div class="contact">
+            <a href="mailto:sebastianngriego@gmail.com">sebastianngriego@gmail.com</a>
+        </div>
+    </main>
 
 </body>
 </html>
