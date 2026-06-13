@@ -3,103 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Six AI-assisted optimization-constant bound improvements, with pull requests, certificates, and verification artifacts.">
+    <link rel="canonical" href="https://sebastian-griego.github.io/ai-assisted-bound-improvements.html">
+    <link rel="stylesheet" href="styles.css">
     <title>Six AI-assisted bound improvements | Sebastian Griego</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #000;
-            background: #fff;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .note-header {
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #ccc;
-        }
-
-        .note-header p {
-            margin: 0 0 10px 0;
-            font-size: 14px;
-        }
-
-        h1 {
-            font-size: 24px;
-            margin: 10px 0;
-            line-height: 1.3;
-        }
-
-        h2 {
-            font-size: 18px;
-            margin: 30px 0 15px 0;
-            border-bottom: 1px solid #ccc;
-        }
-
-        p {
-            margin-bottom: 15px;
-        }
-
-        a {
-            color: #0066cc;
-            text-decoration: none;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-
-        code {
-            font-family: Consolas, "Courier New", monospace;
-            font-size: 0.95em;
-        }
-
-        .table-wrap {
-            overflow-x: auto;
-            margin: 20px 0;
-        }
-
-        table {
-            width: 100%;
-            min-width: 720px;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-
-        th,
-        td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            vertical-align: top;
-        }
-
-        th {
-            background: #f3f3f3;
-            text-align: left;
-        }
-
-        td:first-child {
-            text-align: right;
-            white-space: nowrap;
-            font-weight: bold;
-        }
-
-        hr {
-            margin: 40px 0;
-            border: none;
-            border-top: 1px solid #ccc;
-        }
-    </style>
 </head>
-<body>
+<body class="note-page">
+    <a class="skip-link" href="#content">Skip to content</a>
+
     <header class="note-header">
         <p><a href="index.html">Sebastian Griego</a></p>
         <h1>Six AI-assisted bound improvements for optimization constants</h1>
     </header>
 
-    <main>
+    <main id="content" class="note-content">
         <p>
             In May 2026, I ran an experiment in LLM-assisted mathematical discovery using GPT-5.5 Pro in ChatGPT as part of a human-checked workflow. The target was the <a href="https://github.com/teorth/optimizationproblems" target="_blank" rel="noopener noreferrer"><em>Optimization Constants in Mathematics</em></a> repository, a curated collection of best known bounds for mathematical constants. The experiment produced six merged bound-improvement certificates for entries 3a, 3c, 10c, 42, 45, and 59.
         </p>
@@ -121,45 +38,44 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td>3a</td>
-                        <td>Gyarmati-Hennecart-Ruzsa sum-difference constant</td>
-                        <td>Lower bound improved to <code>1.1740744</code>; merged.</td>
-                        <td><a href="https://github.com/teorth/optimizationproblems/pull/71" target="_blank" rel="noopener noreferrer">PR #71</a>; finite digit construction and exact counting verifier in the PR.</td>
+                        <td data-label="Entry">3a</td>
+                        <td data-label="Object">Gyarmati-Hennecart-Ruzsa sum-difference constant</td>
+                        <td data-label="Contribution">Lower bound improved to <code>1.1740744</code>; merged.</td>
+                        <td data-label="PR and verification"><a href="https://github.com/teorth/optimizationproblems/pull/71" target="_blank" rel="noopener noreferrer">PR #71</a>; finite digit construction and exact counting verifier in the PR.</td>
                     </tr>
                     <tr>
-                        <td>3c</td>
-                        <td>4-slope Kakeya-type sum-difference constant</td>
-                        <td>Lower bound improved to <code>1.67473389</code>; merged.</td>
-                        <td><a href="https://github.com/teorth/optimizationproblems/pull/70" target="_blank" rel="noopener noreferrer">PR #70</a>; 26-point entropy construction and high-precision verifier in the PR.</td>
+                        <td data-label="Entry">3c</td>
+                        <td data-label="Object">4-slope Kakeya-type sum-difference constant</td>
+                        <td data-label="Contribution">Lower bound improved to <code>1.67473389</code>; merged.</td>
+                        <td data-label="PR and verification"><a href="https://github.com/teorth/optimizationproblems/pull/70" target="_blank" rel="noopener noreferrer">PR #70</a>; 26-point entropy construction and high-precision verifier in the PR.</td>
                     </tr>
                     <tr>
-                        <td>10c</td>
-                        <td>Spencer discrepancy constant</td>
-                        <td>Lower bound improved to <code>4/sqrt(6)</code>; merged.</td>
-                        <td><a href="https://github.com/teorth/optimizationproblems/pull/74" target="_blank" rel="noopener noreferrer">PR #74</a>; 6 by 6 sign-matrix certificate checked by exhaustive enumeration.</td>
+                        <td data-label="Entry">10c</td>
+                        <td data-label="Object">Spencer discrepancy constant</td>
+                        <td data-label="Contribution">Lower bound improved to <code>4/sqrt(6)</code>; merged.</td>
+                        <td data-label="PR and verification"><a href="https://github.com/teorth/optimizationproblems/pull/74" target="_blank" rel="noopener noreferrer">PR #74</a>; 6 by 6 sign-matrix certificate checked by exhaustive enumeration.</td>
                     </tr>
                     <tr>
-                        <td>42</td>
-                        <td>Turan's pure power sum constant</td>
-                        <td>Upper bound improved to <code>0.6906538</code>; merged.</td>
-                        <td><a href="https://github.com/teorth/optimizationproblems/pull/85" target="_blank" rel="noopener noreferrer">PR #85</a>; proof note, exact verifier, and exported certificate data in a <a href="https://github.com/sebastian-griego/turan-c42-certificate/tree/v1.0.0" target="_blank" rel="noopener noreferrer">certificate repository</a>.</td>
+                        <td data-label="Entry">42</td>
+                        <td data-label="Object">Turan's pure power sum constant</td>
+                        <td data-label="Contribution">Upper bound improved to <code>0.6906538</code>; merged on June 9, 2026.</td>
+                        <td data-label="PR and verification"><a href="https://github.com/teorth/optimizationproblems/pull/85" target="_blank" rel="noopener noreferrer">PR #85</a>; proof note, exact verifier, and exported certificate data in a <a href="https://github.com/sebastian-griego/turan-c42-certificate" target="_blank" rel="noopener noreferrer">certificate repository</a>.</td>
                     </tr>
                     <tr>
-                        <td>45</td>
-                        <td>Romanoff's constant</td>
-                        <td>Upper-density bound improved to below <code>0.490249407811155</code>; merged.</td>
-                        <td><a href="https://github.com/teorth/optimizationproblems/pull/82" target="_blank" rel="noopener noreferrer">PR #82</a>; exact verifier in the <a href="https://github.com/sebastian-griego/c45-romanoff-certificate/tree/v1-c45-certificate" target="_blank" rel="noopener noreferrer">Romanoff certificate repository</a>.</td>
+                        <td data-label="Entry">45</td>
+                        <td data-label="Object">Romanoff's constant</td>
+                        <td data-label="Contribution">Upper-density bound improved to below <code>0.490249407811155</code>; merged.</td>
+                        <td data-label="PR and verification"><a href="https://github.com/teorth/optimizationproblems/pull/82" target="_blank" rel="noopener noreferrer">PR #82</a>; exact verifier in the <a href="https://github.com/sebastian-griego/c45-romanoff-certificate/tree/v1-c45-certificate" target="_blank" rel="noopener noreferrer">Romanoff certificate repository</a>.</td>
                     </tr>
                     <tr>
-                        <td>59</td>
-                        <td>Bohr radius for the bidisc</td>
-                        <td>Upper bound improved to below <code>0.3174541</code>; merged.</td>
-                        <td><a href="https://github.com/teorth/optimizationproblems/pull/75" target="_blank" rel="noopener noreferrer">PR #75</a>; rational-inner Fejer certificate and exact integer verifier in the PR.</td>
+                        <td data-label="Entry">59</td>
+                        <td data-label="Object">Bohr radius for the bidisc</td>
+                        <td data-label="Contribution">Upper bound improved to below <code>0.3174541</code>; merged.</td>
+                        <td data-label="PR and verification"><a href="https://github.com/teorth/optimizationproblems/pull/75" target="_blank" rel="noopener noreferrer">PR #75</a>; rational-inner Fejer certificate and exact integer verifier in the PR.</td>
                     </tr>
                 </tbody>
             </table>
         </div>
-
     </main>
 </body>
 </html>
