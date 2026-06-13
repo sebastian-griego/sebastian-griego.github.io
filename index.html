@@ -3,166 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Sebastian Griego's work on formal verification, Lean 4, proof artifacts, autoformalization, and AI-assisted mathematical discovery.">
-    <meta name="theme-color" content="#f7faf8">
-    <link rel="canonical" href="https://sebastian-griego.github.io/">
-    <link rel="stylesheet" href="styles.css">
-    <meta property="og:title" content="Sebastian Griego | Formal verification and AI for math">
-    <meta property="og:description" content="Math, Lean 4, formal verification, certificate artifacts, and AI-assisted mathematical discovery.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://sebastian-griego.github.io/">
-    <meta property="og:image" content="https://sebastian-griego.github.io/Snapchat-1305767540~2.jpg">
-    <meta name="twitter:card" content="summary">
-    <title>Sebastian Griego | Formal verification and AI for math</title>
+    <title>Sebastian Griego | Math</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #000;
+            background: #fff;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .top-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .profile-img {
+            width: 200px;
+            height: auto;
+            margin: 30px auto;
+            display: block;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin: 10px 0;
+        }
+
+        .tagline {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            font-size: 18px;
+            margin: 30px 0 15px 0;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .about p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .feature-note {
+            margin: 30px 0;
+            padding: 14px 16px;
+            border-left: 3px solid #666;
+            background: #f7f7f7;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .feature-note p {
+            margin: 0 0 10px 0;
+        }
+
+        .feature-note p:last-child {
+            margin-bottom: 0;
+        }
+
+        .feature-note a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        .feature-note a:hover {
+            text-decoration: underline;
+        }
+
+        .side-note {
+            margin: 30px 0;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .side-note a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        .side-note a:hover {
+            text-decoration: underline;
+        }
+
+        .contact {
+            margin: 40px 0;
+        }
+
+        .contact a {
+            color: #0066cc;
+            text-decoration: none;
+            font-size: 18px;
+        }
+
+        .contact a:hover {
+            text-decoration: underline;
+        }
+
+        .header-links {
+            margin-top: 10px;
+        }
+
+        .header-links a {
+            color: #0066cc;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 18px;
+        }
+
+        .header-links a:hover {
+            text-decoration: underline;
+        }
+
+        hr {
+            margin: 40px 0;
+            border: none;
+            border-top: 1px solid #ccc;
+        }
+    </style>
 </head>
 <body>
-    <a class="skip-link" href="#content">Skip to content</a>
+    <div class="top-header">
+        <h1>Sebastian Griego</h1>
+        <div class="header-links">
+            <a href="https://github.com/sebastian-griego">GitHub</a>
+        </div>
+    </div>
 
-    <header class="site-header">
-        <nav class="site-nav" aria-label="Primary">
-            <a class="brand-link" href="/">Sebastian Griego</a>
-            <div class="nav-links">
-                <a href="#projects">Projects</a>
-                <a href="#artifacts">Artifacts</a>
-                <a href="https://github.com/sebastian-griego" target="_blank" rel="noopener noreferrer">GitHub</a>
-                <a href="mailto:sebastianngriego@gmail.com">Email</a>
-            </div>
-        </nav>
-    </header>
+    <img src="Snapchat-1305767540~2.jpg" alt="Sebastian Griego" class="profile-img">
 
-    <main id="content">
-        <section class="profile-intro" aria-labelledby="profile-title">
-            <img src="Snapchat-1305767540~2.jpg" alt="Sebastian Griego" class="profile-photo">
-            <div class="profile-copy">
-                <p class="eyebrow">Formal verification, Lean 4, proof artifacts</p>
-                <h1 id="profile-title">Sebastian Griego</h1>
-                <p class="lede">
-                    I work on formal verification and AI for math, with a focus on Lean 4, autoformalization, proof synthesis, and reviewable certificate workflows for mathematical claims.
-                </p>
-                <p>
-                    I am interested in making formal methods more useful to mathematicians: translating informal arguments into checkable artifacts, building evaluation workflows around proof assistants, and using AI without losing the guarantees that make formal verification valuable.
-                </p>
-                <div class="action-row" aria-label="Primary links">
-                    <a class="button-link primary" href="https://github.com/sebastian-griego" target="_blank" rel="noopener noreferrer">GitHub</a>
-                    <a class="button-link" href="ai-assisted-bound-improvements.html">Bound improvements</a>
-                    <a class="button-link" href="mailto:sebastianngriego@gmail.com">Email</a>
-                </div>
-            </div>
-        </section>
+    <h2>About</h2>
+    <div class="about">
+        <p>
+            Currently, I work on formal verification and AI for math. I am especially interested in LLM-assisted theorem proving in Lean 4, including autoformalization, proof synthesis from formal statements, and the practical question of how theorem provers can fit into everyday mathematical work. I also do some work with <a href="https://caj.al/" target="_blank" rel="noopener noreferrer">Cajal</a> on problems in this area.
+        </p>
+        <p>
+            Broadly, I am interested in making formal methods more useful to mathematicians: translating informal arguments into checkable artifacts, building better evaluation workflows around proof assistants, and understanding where AI can help without losing the guarantees that make formal verification valuable.
+        </p>
+    </div>
 
-        <section class="signal-strip" aria-label="Current work summary">
-            <div>
-                <span class="signal-value">6</span>
-                <span class="signal-label">merged optimization-constant improvements</span>
-            </div>
-            <div>
-                <span class="signal-value">Lean 4</span>
-                <span class="signal-label">proof repair, autoformalization, evaluation</span>
-            </div>
-            <div>
-                <span class="signal-value">Exact</span>
-                <span class="signal-label">certificate verifiers and audit artifacts</span>
-            </div>
-        </section>
+    <div class="feature-note">
+        <p>
+            <strong>AI-assisted mathematical discovery.</strong> In May 2026, I used GPT-5.5 Pro in ChatGPT as part of a human-checked workflow to produce <a href="ai-assisted-bound-improvements.html">six merged bound-improvement certificates</a> for the <a href="https://github.com/teorth/optimizationproblems" target="_blank" rel="noopener noreferrer"><em>Optimization Constants in Mathematics</em></a> repository: 3a, 3c, 10c, 42, 45, and 59. All six corresponding pull requests have been merged into the repository maintained by Damek Davis, Paata Ivanisvili, and Terence Tao.
+        </p>
+        <p>
+            The short note collects the PRs, certificates, verification scripts, and lessons from the experiment.
+        </p>
+    </div>
 
-        <section class="section-block" id="projects" aria-labelledby="projects-title">
-            <div class="section-heading">
-                <p class="eyebrow">Selected repositories</p>
-                <h2 id="projects-title">Public work worth inspecting</h2>
-            </div>
+    <p class="side-note">
+        I also made a <a href="https://www.overleaf.com/latex/templates/latex-parchment-paper/bkdfxyrghhgr" target="_blank" rel="noopener noreferrer">LaTeX parchment paper template</a> for fun.
+    </p>
 
-            <div class="project-grid">
-                <article class="project-card accent-teal">
-                    <div class="project-header">
-                        <h3>Lean Time-Horizon Benchmark</h3>
-                        <span>Python / Lean</span>
-                    </div>
-                    <p>
-                        A Lean-based evaluation artifact for realistic formalization and verification tasks, with hidden semantic pins, public exports, metadata, reports, and validation manifests.
-                    </p>
-                    <div class="card-links">
-                        <a href="https://github.com/sebastian-griego/lean-time-horizon" target="_blank" rel="noopener noreferrer">Repository</a>
-                    </div>
-                </article>
+    <hr>
 
-                <article class="project-card accent-red">
-                    <div class="project-header">
-                        <h3>Turan C42 Certificate</h3>
-                        <span>Python</span>
-                    </div>
-                    <p>
-                        Exact rational interval verifier and exported certificate package for the asymptotic upper bound C_42 <= 0.6906538.
-                    </p>
-                    <div class="card-links">
-                        <a href="https://github.com/sebastian-griego/turan-c42-certificate" target="_blank" rel="noopener noreferrer">Repository</a>
-                    </div>
-                </article>
+    <div class="contact">
+        <a href="mailto:sebastianngriego@gmail.com">sebastianngriego@gmail.com</a>
+    </div>
 
-                <article class="project-card accent-blue">
-                    <div class="project-header">
-                        <h3>C45 Romanoff Certificate</h3>
-                        <span>Python</span>
-                    </div>
-                    <p>
-                        Reproducible certificate tooling and exact verification for an improved upper-density bound related to Romanoff's constant.
-                    </p>
-                    <div class="card-links">
-                        <a href="https://github.com/sebastian-griego/c45-romanoff-certificate" target="_blank" rel="noopener noreferrer">Repository</a>
-                    </div>
-                </article>
-
-                <article class="project-card accent-violet">
-                    <div class="project-header">
-                        <h3>Autoformalization Tools</h3>
-                        <span>Python / Lean</span>
-                    </div>
-                    <p>
-                        Experiments around converting mathematical text into Lean-facing artifacts, repairing Lean outputs, and making model behavior easier to inspect.
-                    </p>
-                    <div class="card-links">
-                        <a href="https://github.com/sebastian-griego/autoformalize" target="_blank" rel="noopener noreferrer">Autoformalize</a>
-                        <a href="https://github.com/sebastian-griego/leanrepair" target="_blank" rel="noopener noreferrer">LeanRepair</a>
-                    </div>
-                </article>
-            </div>
-        </section>
-
-        <section class="section-block" id="artifacts" aria-labelledby="artifacts-title">
-            <div class="section-heading">
-                <p class="eyebrow">Hosted artifacts</p>
-                <h2 id="artifacts-title">Notes and interactive tools</h2>
-            </div>
-
-            <div class="artifact-list">
-                <a class="artifact-item" href="ai-assisted-bound-improvements.html">
-                    <span class="artifact-title">AI-assisted bound improvements</span>
-                    <span class="artifact-desc">Six merged optimization-constant certificates, verification links, and lessons from the workflow.</span>
-                </a>
-                <a class="artifact-item" href="math_genealogy/">
-                    <span class="artifact-title">Math genealogy explorer</span>
-                    <span class="artifact-desc">Interactive graph interface for navigating adviser relationships and paths.</span>
-                </a>
-                <a class="artifact-item" href="estimathon/">
-                    <span class="artifact-title">SUMaC Estimathon</span>
-                    <span class="artifact-desc">Browser-based scoring and answer-tracking tool for estimation rounds.</span>
-                </a>
-                <a class="artifact-item" href="smart_snake/">
-                    <span class="artifact-title">Smart Snake</span>
-                    <span class="artifact-desc">Canvas game experiment with an automated snake policy.</span>
-                </a>
-            </div>
-        </section>
-
-        <section class="section-block contact-panel" id="contact" aria-labelledby="contact-title">
-            <div>
-                <p class="eyebrow">Contact</p>
-                <h2 id="contact-title">Reach out</h2>
-                <p>
-                    I am easiest to reach by email for math, Lean, proof-assistant evaluation, and certificate-review conversations.
-                </p>
-            </div>
-            <a class="button-link primary" href="mailto:sebastianngriego@gmail.com">sebastianngriego@gmail.com</a>
-        </section>
-    </main>
 </body>
 </html>
